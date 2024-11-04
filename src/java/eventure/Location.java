@@ -1,4 +1,4 @@
-package java;
+package java.eventure;
 
 import java.util.List;
 
