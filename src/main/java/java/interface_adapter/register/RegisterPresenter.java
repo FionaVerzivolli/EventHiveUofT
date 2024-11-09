@@ -55,7 +55,7 @@ public class RegisterPresenter implements RegisterOutputBoundary {
 
     // TODO: switch to createEventview
     @Override
-    public void switchToCreateEventView() {
+    public void switchToLoginView() {
         viewManagerModel.setState(createEventViewModel.getViewName());
         viewManagerModel.firePropertyChanged();
     }

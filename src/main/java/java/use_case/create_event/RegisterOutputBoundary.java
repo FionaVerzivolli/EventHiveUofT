@@ -1,5 +1,7 @@
-package main.java.java.use_case.register;
+package main.java.java.use_case.create_event;
 
+
+import main.java.java.use_case.create_event.RegisterOutputData;
 
 /**
  * The output boundary for the Register User Use Case
