@@ -8,6 +8,7 @@ import javax.swing.JPanel;
 import javax.swing.WindowConstants;
 
 import app.data_access.FirebaseDAO;
+import app.entity.Event.CommonEventFactory;
 import app.entity.Event.Event;
 import app.entity.Event.EventFactory;
 import app.entity.User.CommonUserFactory;
@@ -83,21 +84,10 @@ public class AppBuilder {
 
     public CreateEventView addCreateEventView() {
         this.createEventViewModel = new CreateEventViewModel();
-        EventUserDataAccessInterface eventDataAccessObject = new EventUserDataAccessInterface() {
-            @Override
-            public void saveEvent(Event event) {
-
-            }
-        };
         CreateEventPresenter eventPresenter = new CreateEventPresenter(null, createEventViewModel);
-        EventFactory eventFactory = new EventFactory() {
-            @Override
-            public Event create(String eventId, String organizer, String title, String description, String dateTime, int capacity, float latitude, float longitude, List<String> tags) {
-                return null;
-            }
-        };
+        EventFactory eventFactory = new CommonEventFactory();
         EventInputBoundary createEventInputBoundary = new EventInteractor(
-                eventDataAccessObject,
+                firebaseDAO,
                 eventPresenter,
                 eventFactory
         );

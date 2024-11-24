@@ -13,6 +13,9 @@ import java.awt.event.ActionListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 
+import static java.lang.Float.parseFloat;
+import static java.lang.Integer.parseInt;
+
 public class CreateEventView extends JPanel implements ActionListener, PropertyChangeListener {
     private static final String VIEW_NAME = "createEvent";
 
@@ -156,7 +159,26 @@ public class CreateEventView extends JPanel implements ActionListener, PropertyC
     // Updates state based on user input
     private void updateState(String fieldName) {
         // Implementation of state update (placeholder)
-        System.out.println("Updated field: " + fieldName);
+        CreateEventState currentState = createEventViewModel.getState();
+        currentState.setEventId("123");
+        if ("Title".equals(fieldName)) {
+            currentState.setTitle(titleInputField.getText());
+        } else if ("Description".equals(fieldName)) {
+            currentState.setDescription(descriptionInputField.getText());
+        } else if ("Capacity".equals(fieldName)) {
+            currentState.setCapacity(parseInt(capacityInputField.getText()));
+        } else if ("Tags".equals(fieldName)) {
+            currentState.setTags(tagsInputField.getText());
+        } else if ("Date and time".equals(fieldName)) {
+            currentState.setDateTime(timeInputField.getText());
+        } else if ("Organizers".equals(fieldName)) {
+            currentState.setOrganizer(orgInputField.getText());
+        } else if ("Latitude".equals(fieldName)) {
+            currentState.setLatitude(parseFloat(latitudeInputField.getText()));
+        } else if ("Longitude".equals(fieldName)) {
+            currentState.setLongitude(parseFloat(longitudeInputField.getText()));
+        }
+        createEventViewModel.setState(currentState);
     }
 
     // Add a document listener to a JTextField

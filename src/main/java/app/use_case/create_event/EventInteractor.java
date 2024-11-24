@@ -1,7 +1,7 @@
 package app.use_case.create_event;
 
 
-import app.entity.Event.CommonEventFactory;
+
 import app.entity.Event.Event;
 import app.entity.Event.EventFactory;
 
@@ -47,4 +47,4 @@ public class EventInteractor implements EventInputBoundary {
         eventPresenter.prepareSuccessView(eventOutputData);
 
     }
-    }
+}

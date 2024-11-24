@@ -1,5 +1,6 @@
 package app.interface_adapter.create_event;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class CreateEventState {
@@ -46,7 +47,19 @@ public class CreateEventState {
     public void setLatitudeError(String latitudeError) { this.latitudeError = latitudeError; }
 
     public List<String> getTags() { return tags; }
-    public void setTags(List<String> tags) {this.tags = tags; }
+    public void setTags(String tags) {
+        ArrayList<String> tagger = new ArrayList<>();
+        StringBuilder ret = new StringBuilder();
+        for (int i = 0; i<tags.length(); i++){
+            if (tags.charAt(i) == ',') {
+                tagger.add(ret.toString());
+            } else {
+                ret.append(tags.charAt(i));
+            }
+        }
+        tagger.add(ret.toString());
+        this.tags = tagger;
+    }
 
     @Override
     public String toString() {
