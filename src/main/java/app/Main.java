@@ -42,13 +42,14 @@ public class Main {
         LoginView loginView = appBuilder.addLoginView();
         HomeView homeView = appBuilder.addMainView();
         CreateEventView createEventView = appBuilder.addCreateEventView();
+        ModifyEventView modifyEventView = appBuilder.addModifyEventView();
 
         // set parent panels for navigation purposes
         registerView.setParentPanel(appBuilder.getCardPanel());
         loginView.setParentPanel(appBuilder.getCardPanel());
         homeView.setParentPanel(appBuilder.getCardPanel());
         createEventView.setParentPanel(appBuilder.getCardPanel());
-
+        modifyEventView.setParentPanel(appBuilder.getCardPanel());
 
         // build the application and display it
         final JFrame application = appBuilder.build();

@@ -7,16 +7,17 @@ import app.entity.Event.Event;
  */
 public interface ModifyEventUserDataAccessInterface {
     /**
-     * Finds an event by its ID.
-     * @param eventId The ID of the event to find.
-     * @return The Event object if found, null otherwise.
+     * Function to save an event to the Firebase Database.
+     *
+     * @param event, the event we want to save.
      */
-    Event findEventById(String eventId);
+    public void saveEvent(Event event);
+
 
     /**
-     * Updates the event with new values.
-     * @param event The event to update.
-     * @return true if the event was successfully updated, false otherwise.
+     * Function to delete an event from the Firebase Database.
+     *
+     * @param eventName the name of the event to delete.
      */
-    boolean updateEvent(Event event);
+    public void deleteEvent(String eventName);
 }

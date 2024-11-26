@@ -7,7 +7,7 @@ public class CommonEventFactory implements EventFactory {
     @Override
     public Event create(String eventId, String organizer, String title, String description, String dateTime,
                         int capacity, float latitude, float longitude, List<String> tags) {
-//        // Log inputs for debugging
+        // Log inputs for debugging
 //        System.out.println("Creating event with inputs:");
 //        System.out.printf("ID: %s, Organizer: %s, Title: %s, Description: %s, DateTime: %s%n",
 //                eventId, organizer, title, description, dateTime);

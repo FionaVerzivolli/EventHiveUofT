@@ -25,6 +25,9 @@ import app.interface_adapter.filter_event.FilterEventPresenter;
 import app.interface_adapter.filter_event.FilterEventViewModel;
 import app.interface_adapter.login.LoginViewModel;
 import app.interface_adapter.home.HomeViewModel;
+import app.interface_adapter.modify_event.ModifyEventController;
+import app.interface_adapter.modify_event.ModifyEventPresenter;
+import app.interface_adapter.modify_event.ModifyEventViewModel;
 import app.interface_adapter.register.RegisterController;
 import app.interface_adapter.register.RegisterPresenter;
 import app.interface_adapter.register.RegisterViewModel;
@@ -34,6 +37,8 @@ import app.use_case.display_event.DisplayEventInteractor;
 import app.use_case.filter_event.FilterEventInputBoundary;
 import app.use_case.filter_event.FilterEventInteractor;
 import app.use_case.filter_event.FilterEventOutputBoundary;
+import app.use_case.modify_event.ModifyEventInputBoundary;
+import app.use_case.modify_event.ModifyEventInteractor;
 import app.use_case.register.RegisterInputBoundary;
 import app.use_case.register.RegisterInteractor;
 import app.use_case.register.RegisterOutputBoundary;
@@ -76,6 +81,9 @@ public class AppBuilder {
     private FilterEventViewModel filterEventViewModel;
     private FilterEventView filterEventView;
 
+    private ModifyEventView modifyEventView;
+    private ModifyEventViewModel modifyEventViewModel;
+    private ModifyEventController modifyEventController;
 
     // ensure that you are using card layout
     public AppBuilder() {
@@ -108,6 +116,22 @@ public class AppBuilder {
         createEventView.setParentPanel(cardPanel); // Set parentPanel
         cardPanel.add(createEventView, createEventView.getViewName());
         return createEventView;
+    }
+
+    public ModifyEventView addModifyEventView() {
+        this.modifyEventViewModel = new ModifyEventViewModel("modifyEvent");
+        ModifyEventPresenter modifyEventPresenter = new ModifyEventPresenter(null, modifyEventViewModel);
+        EventFactory eventFactory = new CommonEventFactory();
+        ModifyEventInputBoundary modifyEventInputBoundary = new ModifyEventInteractor(
+                eventDAO,
+                modifyEventPresenter,
+                eventFactory
+        );
+        this.modifyEventController = new ModifyEventController(modifyEventInputBoundary);
+        this.modifyEventView = new ModifyEventView(modifyEventViewModel, modifyEventController);
+        modifyEventView.setParentPanel(cardPanel); // Set parentPanel
+        cardPanel.add(modifyEventView,  modifyEventView.getViewName());
+        return modifyEventView;
     }
 
     public HomeView addMainView() {
@@ -189,6 +213,7 @@ public class AppBuilder {
 //        cardLayout.show(cardPanel, registerView.getViewName());
 //        cardLayout.show(cardPanel, createEventView.getViewName());
 //        cardLayout.show(cardPanel, filterEventView.getViewName());
+//        cardLayout.show(cardPanel, modifyEventView.getViewName());
 
         // headless case
         if (GraphicsEnvironment.isHeadless()) {

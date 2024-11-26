@@ -1,7 +1,8 @@
 package app.use_case.modify_event;
 
 import app.entity.Event.Event;
-import app.entity.Event.CommonEvent;
+import app.entity.Event.EventFactory;
+
 import app.use_case.modify_event.ModifyEventUserDataAccessInterface;
 
 /**
@@ -11,35 +12,52 @@ import app.use_case.modify_event.ModifyEventUserDataAccessInterface;
 public class ModifyEventInteractor implements ModifyEventInputBoundary {
     private final ModifyEventUserDataAccessInterface modifyEventUserDataAccessObject;
     private final ModifyEventOutputBoundary modifyEventPresenter;
+    EventFactory eventFactory;
 
     public ModifyEventInteractor(ModifyEventUserDataAccessInterface modifyEventUserDataAccessObject,
-                                 ModifyEventOutputBoundary modifyEventPresenter) {
+                                 ModifyEventOutputBoundary modifyEventPresenter,
+                                 EventFactory eventFactory   ) {
         this.modifyEventUserDataAccessObject = modifyEventUserDataAccessObject;
         this.modifyEventPresenter = modifyEventPresenter;
+        this.eventFactory = eventFactory;
     }
 
     @Override
     public void execute(ModifyEventInputData modifyEventInputData) {
-        Event event = modifyEventUserDataAccessObject.findEventById(modifyEventInputData.getEventId());
-
-        if (event == null) {
+        String eventName = modifyEventInputData.getOldTitle();
+        System.out.println("Rizzler was here");
+        System.out.println(modifyEventInputData.getDeleteEvent());
+        if (eventName == null) {
             modifyEventPresenter.prepareFailView("Event not found.");
-        } else {
-            // Update the event with new values using setters
-            event.setTitle(modifyEventInputData.getUpdatedTitle());
-            event.setDescription(modifyEventInputData.getUpdatedDescription());
-            event.setDateTime(modifyEventInputData.getUpdatedDateTime());
-            event.setCapacity(modifyEventInputData.getUpdatedCapacity());
-            event.setLatitude(modifyEventInputData.getUpdatedLatitude());
-            event.setLongitude(modifyEventInputData.getUpdatedLongitude());
-
-            boolean updateSuccessful = modifyEventUserDataAccessObject.updateEvent(event);
-
-            if (updateSuccessful) {
-                ModifyEventOutputData outputData = new ModifyEventOutputData(event.getEventId(), event.getTitle(), "Event updated successfully.");
+        } else if (modifyEventInputData.getDeleteEvent()) {
+            try {
+                System.out.println("Delete event");
+                modifyEventUserDataAccessObject.deleteEvent(eventName);
+                ModifyEventOutputData outputData = new ModifyEventOutputData("Temp", eventName, "Event deleted successfully.");
                 modifyEventPresenter.prepareSuccessView(outputData);
-            } else {
-                modifyEventPresenter.prepareFailView("Failed to update event.");
+            } catch (Exception e) {
+                modifyEventPresenter.prepareFailView("Failed to delete event. Reason: " + e.getMessage());
+            }
+        } else {
+            try {
+                Event event = eventFactory.create(
+                        modifyEventInputData.getEventId(),
+                        modifyEventInputData.getUpdatedOrganizer(),
+                        modifyEventInputData.getUpdatedTitle(),
+                        modifyEventInputData.getUpdatedDescription(),
+                        modifyEventInputData.getUpdatedDateTime(),
+                        modifyEventInputData.getUpdatedCapacity(),
+                        modifyEventInputData.getUpdatedLatitude(),
+                        modifyEventInputData.getUpdatedLongitude(),
+                        modifyEventInputData.getUpdatedTags()
+                );
+                System.out.println("Big Justicesd    was here");
+                modifyEventUserDataAccessObject.deleteEvent(eventName);
+                modifyEventUserDataAccessObject.saveEvent(event);
+                ModifyEventOutputData outputData = new ModifyEventOutputData("Temp", eventName, "Event deleted successfully.");
+                modifyEventPresenter.prepareSuccessView(outputData);
+            } catch (Exception e) {
+                    modifyEventPresenter.prepareFailView("Failed to delete event. Reason: " + e.getMessage());
             }
         }
     }

@@ -3,6 +3,7 @@ package app.data_access;
 import app.entity.Event.CommonEvent;
 import app.entity.User.CommonUserFactory;
 import app.use_case.filter_event.FilterEventUserDataAccessInterface;
+import app.use_case.modify_event.ModifyEventUserDataAccessInterface;
 import app.use_case.display_event.DisplayEventDataAccessInterface;
 import com.google.api.core.ApiFuture;
 import com.google.cloud.firestore.CollectionReference;
@@ -34,7 +35,7 @@ import java.util.concurrent.ExecutionException;
  * This implementation persists data in Firestore.
  */
 @Component
-public class EventDAO implements EventUserDataAccessInterface, DisplayEventDataAccessInterface, FilterEventUserDataAccessInterface {
+public class EventDAO implements EventUserDataAccessInterface, DisplayEventDataAccessInterface, FilterEventUserDataAccessInterface, ModifyEventUserDataAccessInterface {
 
     private final Firestore db;
     private final CollectionReference eventCollection;
@@ -151,4 +152,28 @@ public class EventDAO implements EventUserDataAccessInterface, DisplayEventDataA
 
         }
     }
+
+    /**
+     * Function to delete an event from the Firebase Database.
+     *
+     * @param eventName the name of the event to delete.
+     */
+    @Override
+    public void deleteEvent(String eventName) {
+        try {
+            // Reference to the document with the given name
+            DocumentReference docRef = eventCollection.document(eventName);
+
+            // Attempt to delete the document
+            ApiFuture<WriteResult> writeResult = docRef.delete();
+
+            // Wait for the operation to complete
+            WriteResult result = writeResult.get();
+
+            System.out.println("Event deleted at");
+        } catch (InterruptedException | ExecutionException e) {
+            System.err.println("Error deleting event from Firestore: " + e.getMessage());
+        }
+    }
+
 }
