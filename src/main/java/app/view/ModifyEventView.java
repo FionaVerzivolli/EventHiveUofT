@@ -1,6 +1,5 @@
 package app.view;
 
-
 import app.interface_adapter.modify_event.ModifyEventController;
 import app.interface_adapter.modify_event.ModifyEventState;
 import app.interface_adapter.modify_event.ModifyEventViewModel;
@@ -8,21 +7,34 @@ import app.interface_adapter.modify_event.ModifyEventViewModel;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.TitledBorder;
-
+import javax.swing.border.LineBorder;
 import java.awt.*;
-import java.awt.event.ActionListener;
+import java.awt.event.FocusAdapter;
+import java.awt.event.FocusEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 
 import static java.lang.Float.parseFloat;
 import static java.lang.Integer.parseInt;
 
-public class ModifyEventView extends JPanel implements ActionListener, PropertyChangeListener {
+public class ModifyEventView extends JPanel implements java.awt.event.ActionListener, PropertyChangeListener {
     private static final String VIEW_NAME = "modifyEvent";
+
+    // Unified color palette
+    private static final Color BG_COLOR = new Color(250, 250, 252);
+    private static final Color BUTTON_BG = Color.WHITE;
+    private static final Color BUTTON_BG_HOVER = new Color(2, 36, 56, 30);
+    private static final Color BUTTON_BORDER = new Color(2, 36, 56);
+    private static final Color BUTTON_TEXT = BUTTON_BORDER;
+    private static final Color TITLE_COLOR = BUTTON_BORDER;
+    private static final Color INPUT_BG = Color.WHITE;
+    private static final Color INPUT_BORDER = new Color(220, 225, 235);
+    private static final Color INPUT_BORDER_FOCUS = BUTTON_BORDER;
+    private static final Color INPUT_LABEL = new Color(90, 100, 120);
 
     private final ModifyEventViewModel modifyEventViewModel;
     private final JTextField oldTitleInputField, updatedOrgInputField, updatedTitleInputField, updatedDescriptionInputField, updatedTimeInputField,
-            updatedCapacityInputField, updatedTagsInputField, updatedLatitudeInputField, updatedLongitudeInputField;
+            updatedCapacityInputField, updatedTagsInputField, updatedLocationInputField;
     private final JButton modifyEventButton;
     private final JButton homeButton;
     private final JCheckBox deleteEventCheckbox;
@@ -33,39 +45,34 @@ public class ModifyEventView extends JPanel implements ActionListener, PropertyC
         this.modifyEventViewModel = modifyEventViewModel;
         this.modifyEventViewModel.addPropertyChangeListener(this);
 
-        // Configure the layout
         this.setLayout(new BorderLayout());
+        this.setBackground(BG_COLOR);
         this.setBorder(new EmptyBorder(20, 20, 20, 20));
 
-        // Main panel for form
         JPanel formPanel = new JPanel();
         formPanel.setLayout(new GridBagLayout());
+        formPanel.setBackground(BG_COLOR);
         formPanel.setBorder(BorderFactory.createTitledBorder(
-                BorderFactory.createEtchedBorder(), "Modify Event",
-                TitledBorder.CENTER, TitledBorder.TOP, new Font("Arial", Font.BOLD, 16), Color.BLUE));
+                BorderFactory.createLineBorder(BUTTON_BORDER, 2, true), "Modify Event",
+                TitledBorder.CENTER, TitledBorder.TOP, getFontWithFallback("Inter", Font.BOLD, 20), TITLE_COLOR));
 
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(10, 10, 10, 10);
         gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.anchor = GridBagConstraints.CENTER;
 
-
-
-        // Build components and generate placeholders
         oldTitleInputField = createInputField("Enter the old title...");
         updatedOrgInputField = createInputField("Enter the new organizer(s)...");
         updatedTitleInputField = createInputField("Enter your new title...");
         updatedDescriptionInputField = createInputField("Enter your new description... (150 characters max)");
         updatedTimeInputField = createInputField("Please enter the new time and date...");
         updatedCapacityInputField = createInputField("Enter the new capacity...");
-        updatedLatitudeInputField = createInputField("Please enter the new latitude of the address");
-        updatedLongitudeInputField = createInputField("Please enter the new longitude of the address");
+        updatedLocationInputField = createInputField("Enter the new location...");
         updatedTagsInputField = createInputField("Enter new event tags (comma-separated)...");
-        // Create an event button
-        modifyEventButton = modifyEventButton();
-        // Create a home button
-        homeButton = createHomeButton();
-        // Add document listeners for input validation
+
+        modifyEventButton = createStyledButton("Modify Event", this::actionPerformed);
+        homeButton = createStyledButton("Home", this::actionPerformed);
+
         addDocumentListener(oldTitleInputField, () -> updateState("Old title"));
         addDocumentListener(updatedTitleInputField, () -> updateState("Title"));
         addDocumentListener(updatedDescriptionInputField, () -> updateState("Description"));
@@ -73,127 +80,161 @@ public class ModifyEventView extends JPanel implements ActionListener, PropertyC
         addDocumentListener(updatedTagsInputField, () -> updateState("Tags"));
         addDocumentListener(updatedTimeInputField, () -> updateState("Date and time"));
         addDocumentListener(updatedOrgInputField, () -> updateState("Organizers"));
-        addDocumentListener(updatedLatitudeInputField, () -> updateState("Latitude"));
-        addDocumentListener(updatedLongitudeInputField, () -> updateState("Longitude"));
-        modifyEventButton.addActionListener(this::actionPerformed);
-        homeButton.addActionListener(this::actionPerformed);
+        addDocumentListener(updatedLocationInputField, () -> updateState("Location"));
 
-        // Add labels and fields to the panel, starting with the old Title
-        gbc.gridx = 0; gbc.gridy = 0;
+        int row = 0;
+        gbc.gridx = 0; gbc.gridy = row;
         formPanel.add(createLabel("Old title:"), gbc);
         gbc.gridx = 1;
         formPanel.add(oldTitleInputField, gbc);
 
-        // Add organizers input
-        gbc.gridx = 0; gbc.gridy = 1;
+        gbc.gridx = 0; gbc.gridy = ++row;
         formPanel.add(createLabel("Organizers:"), gbc);
         gbc.gridx = 1;
         formPanel.add(updatedOrgInputField, gbc);
 
-        // Add description input
-        gbc.gridx = 0; gbc.gridy = 2;
+        gbc.gridx = 0; gbc.gridy = ++row;
         formPanel.add(createLabel("Title:"), gbc);
         gbc.gridx = 1;
         formPanel.add(updatedTitleInputField, gbc);
 
-        // Add capacity input
-        gbc.gridx = 0; gbc.gridy = 3;
+        gbc.gridx = 0; gbc.gridy = ++row;
         formPanel.add(createLabel("Description:"), gbc);
         gbc.gridx = 1;
         formPanel.add(updatedDescriptionInputField, gbc);
 
-        // Add tags input
-        gbc.gridx = 0; gbc.gridy = 4;
+        gbc.gridx = 0; gbc.gridy = ++row;
         formPanel.add(createLabel("Datetime:"), gbc);
         gbc.gridx = 1;
         formPanel.add(updatedTimeInputField, gbc);
 
-        // Add building input
-        gbc.gridx = 0; gbc.gridy = 5;
+        gbc.gridx = 0; gbc.gridy = ++row;
         formPanel.add(createLabel("Capacity:"), gbc);
         gbc.gridx = 1;
         formPanel.add(updatedCapacityInputField, gbc);
 
-        // Add floor number input
-        gbc.gridx = 0; gbc.gridy = 6;
-        formPanel.add(createLabel("Latitude:"), gbc);
+        gbc.gridx = 0; gbc.gridy = ++row;
+        formPanel.add(createLabel("Location:"), gbc);
         gbc.gridx = 1;
-        formPanel.add(updatedLatitudeInputField, gbc);
+        formPanel.add(updatedLocationInputField, gbc);
 
-        // Add room number input
-        gbc.gridx = 0; gbc.gridy = 7;
-        formPanel.add(createLabel("Longitude:"), gbc);
-        gbc.gridx = 1;
-        formPanel.add(updatedLongitudeInputField, gbc);
-
-        // Add room number input
-        gbc.gridx = 0; gbc.gridy = 8;
+        gbc.gridx = 0; gbc.gridy = ++row;
         formPanel.add(createLabel("Tags:"), gbc);
         gbc.gridx = 1;
         formPanel.add(updatedTagsInputField, gbc);
 
-        // Add the create button
-        gbc.gridx = 0; gbc.gridy = 9; gbc.gridwidth = 2;
+        gbc.gridx = 0; gbc.gridy = ++row; gbc.gridwidth = 2;
         gbc.anchor = GridBagConstraints.CENTER;
         formPanel.add(modifyEventButton, gbc);
 
-        // Add the home button
-        gbc.gridx = 0; gbc.gridy = 10; gbc.gridwidth = 2;
-        gbc.anchor = GridBagConstraints.CENTER;
+        gbc.gridx = 0; gbc.gridy = ++row; gbc.gridwidth = 2;
         formPanel.add(homeButton, gbc);
 
-        // delete event box
         deleteEventCheckbox = new JCheckBox("Delete Event?");
-        deleteEventCheckbox.setFont(new Font("Arial", Font.BOLD, 30));
+        deleteEventCheckbox.setFont(getFontWithFallback("Inter", Font.BOLD, 20));
         deleteEventCheckbox.setForeground(Color.RED);
         deleteEventCheckbox.setFocusPainted(false);
+        deleteEventCheckbox.setOpaque(false);
         deleteEventCheckbox.addActionListener(this::actionPerformed);
-        // Add the checkbox to the formPanel layout
-        gbc.gridx = 0; gbc.gridy = 11; gbc.gridwidth = 2;
-        gbc.anchor = GridBagConstraints.CENTER;
+        gbc.gridx = 0; gbc.gridy = ++row; gbc.gridwidth = 2;
+        gbc.anchor = GridBagConstraints.WEST; // Align left
         formPanel.add(deleteEventCheckbox, gbc);
 
-        // Add formPanel to the main panel
+
         this.add(formPanel, BorderLayout.CENTER);
     }
 
     private JTextField createInputField(String placeholder) {
-        JTextField field = new JTextField(); // No fixed width
-        field.setFont(new Font("Arial", Font.PLAIN, 14));
+        JTextField field = new JTextField();
+        field.setFont(getFontWithFallback("Segoe UI", Font.PLAIN, 15));
+        field.setPreferredSize(new Dimension(320, 32));
+        field.setMinimumSize(new Dimension(320, 32));
+        field.setMaximumSize(new Dimension(320, 32));
         field.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(Color.GRAY, 1),
-                BorderFactory.createEmptyBorder(5, 5, 5, 5)));
+                new LineBorder(INPUT_BORDER, 1, true),
+                BorderFactory.createEmptyBorder(8, 12, 8, 12)
+        ));
+        field.setBackground(INPUT_BG);
+        field.setForeground(Color.GRAY);
         field.setToolTipText(placeholder);
+
+        field.addFocusListener(new FocusAdapter() {
+            public void focusGained(FocusEvent e) {
+                if (field.getText().equals(placeholder)) {
+                    field.setText("");
+                    field.setForeground(Color.BLACK);
+                }
+                field.setBorder(BorderFactory.createCompoundBorder(
+                        new LineBorder(INPUT_BORDER_FOCUS, 2, true),
+                        BorderFactory.createEmptyBorder(8, 12, 8, 12)
+                ));
+            }
+            public void focusLost(FocusEvent e) {
+                if (field.getText().isEmpty()) {
+                    field.setForeground(Color.GRAY);
+                    field.setText(placeholder);
+                }
+                field.setBorder(BorderFactory.createCompoundBorder(
+                        new LineBorder(INPUT_BORDER, 1, true),
+                        BorderFactory.createEmptyBorder(8, 12, 8, 12)
+                ));
+            }
+        });
+        field.setText(placeholder);
         return field;
     }
 
-
-    private JButton modifyEventButton() {
-        JButton button = new JButton("Modify Event");
-        button.setFont(new Font("Arial", Font.BOLD, 14));
-        button.setBackground(new Color(70, 130, 180));
-        button.setForeground(Color.WHITE);
-        button.setFocusPainted(false);
+    private JButton createStyledButton(String text, java.awt.event.ActionListener actionListener) {
+        JButton button = new JButton(text) {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(getModel().isRollover() ? BUTTON_BG_HOVER : BUTTON_BG);
+                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 18, 18);
+                g2.setColor(BUTTON_BORDER);
+                g2.setStroke(new BasicStroke(2));
+                g2.drawRoundRect(1, 1, getWidth() - 2, getHeight() - 2, 18, 18);
+                g2.dispose();
+                super.paintComponent(g);
+            }
+        };
+        button.setOpaque(false);
+        button.setContentAreaFilled(false);
         button.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
+        button.setFont(getFontWithFallback("Inter", Font.BOLD, 16));
+        button.setForeground(BUTTON_TEXT);
+        button.setFocusPainted(false);
         button.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        button.addActionListener(actionListener);
+        button.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseEntered(java.awt.event.MouseEvent evt) { button.repaint(); }
+            public void mouseExited(java.awt.event.MouseEvent evt) { button.repaint(); }
+        });
         return button;
     }
 
     private JLabel createLabel(String text) {
         JLabel label = new JLabel(text);
-        label.setFont(new Font("Arial", Font.BOLD, 14));
-        label.setForeground(Color.DARK_GRAY);
+        label.setFont(getFontWithFallback("Inter", Font.BOLD, 15));
+        label.setForeground(INPUT_LABEL);
         return label;
     }
 
-    // Updates state based on user input
+    private Font getFontWithFallback(String preferred, int style, int size) {
+        Font font = new Font(preferred, style, size);
+        if (!font.getFamily().equals(preferred)) {
+            font = new Font("SansSerif", style, size);
+        }
+        return font;
+    }
+
     private void updateState(String fieldName) {
-        // Implementation of state update (placeholder)
         ModifyEventState currentState = modifyEventViewModel.getState();
         currentState.setEventId("123");
         if ("Old title".equals(fieldName)) {
             currentState.setOldTitle(oldTitleInputField.getText());
-        }else if ("Title".equals(fieldName)) {
+        } else if ("Title".equals(fieldName)) {
             currentState.setNewTitle(updatedTitleInputField.getText());
         } else if ("Description".equals(fieldName)) {
             currentState.setDescription(updatedDescriptionInputField.getText());
@@ -205,28 +246,20 @@ public class ModifyEventView extends JPanel implements ActionListener, PropertyC
             currentState.setDateTime(updatedTimeInputField.getText());
         } else if ("Organizers".equals(fieldName)) {
             currentState.setOrganizer(updatedOrgInputField.getText());
-        } else if ("Latitude".equals(fieldName)) {
-            currentState.setLatitude(updatedLatitudeInputField.getText());
-        } else if ("Longitude".equals(fieldName)) {
-            currentState.setLongitude(updatedLongitudeInputField.getText());
+        } else if ("Location".equals(fieldName)) {
+            // Not operational, just store as a string if needed
+            // currentState.setLocation(updatedLocationInputField.getText());
         } else if ("DeleteEvent".equals(fieldName)) {
             currentState.setDeleteEvent(deleteEventCheckbox.isSelected());
         }
         modifyEventViewModel.setState(currentState);
     }
 
-    // Add a document listener to a JTextField
     private void addDocumentListener(JTextField textField, Runnable callback) {
         textField.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
-            public void insertUpdate(javax.swing.event.DocumentEvent e) {
-                callback.run();
-            }
-            public void removeUpdate(javax.swing.event.DocumentEvent e) {
-                callback.run();
-            }
-            public void changedUpdate(javax.swing.event.DocumentEvent e) {
-                callback.run();
-            }
+            public void insertUpdate(javax.swing.event.DocumentEvent e) { callback.run(); }
+            public void removeUpdate(javax.swing.event.DocumentEvent e) { callback.run(); }
+            public void changedUpdate(javax.swing.event.DocumentEvent e) { callback.run(); }
         });
     }
 
@@ -235,9 +268,20 @@ public class ModifyEventView extends JPanel implements ActionListener, PropertyC
         if (e.getSource() == modifyEventButton) {
             try {
                 ModifyEventState currentState = modifyEventViewModel.getState();
-                modifyEventController.execute(currentState.getOldTitle(), currentState.getNewTitle(), currentState.getDescription(),
-                        currentState.getDateTime(), parseInt(currentState.getCapacity()), parseFloat(currentState.getLatitude()), parseFloat(currentState.getLongitude()),
-                        currentState.getDeleteEvent(), currentState.getTags(), "TMP", currentState.getOrganizer());
+                // Location is not operational, so pass a dummy value or ignore
+                modifyEventController.execute(
+                        currentState.getOldTitle(),
+                        currentState.getNewTitle(),
+                        currentState.getDescription(),
+                        currentState.getDateTime(),
+                        parseInt(currentState.getCapacity()),
+                        0f, // latitude dummy
+                        0f, // longitude dummy
+                        currentState.getDeleteEvent(),
+                        currentState.getTags(),
+                        "TMP",
+                        currentState.getOrganizer()
+                );
                 JOptionPane.showMessageDialog(
                         null,
                         "You have modified the event: " + currentState.getOldTitle(),
@@ -254,23 +298,14 @@ public class ModifyEventView extends JPanel implements ActionListener, PropertyC
             }
         } else if (e.getSource() == homeButton) {
             goToHome();
-            System.out.println("Went home!");
         } else if (e.getSource() == deleteEventCheckbox) {
-            updateState("DeleteEvent"); // Ensure the state is updated when the checkbox is toggled
-            System.out.println("DeleteEvent checkbox state changed: " + deleteEventCheckbox.isSelected());
+            updateState("DeleteEvent");
         }
     }
 
-
-    /**
-     * This method gets called when a bound property is changed.
-     *
-     * @param evt A PropertyChangeEvent object describing the event source
-     *            and the property that has changed.
-     */
     @Override
     public void propertyChange(PropertyChangeEvent evt) {
-        ModifyEventState state = (ModifyEventState) evt.getNewValue();
+        // No-op for now
     }
 
     public String getViewName() {
@@ -285,17 +320,6 @@ public class ModifyEventView extends JPanel implements ActionListener, PropertyC
         this.modifyEventController = controller;
     }
 
-
-    private JButton createHomeButton() {
-        JButton button = new JButton("Home");
-        button.setFont(new Font("Arial", Font.BOLD, 14));
-        button.setBackground(new Color(0, 180, 0));
-        button.setForeground(Color.WHITE);
-        button.setFocusPainted(false);
-        button.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
-        button.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        return button;
-    }
     private void goToHome() {
         modifyEventController.switchToHomeView();
     }

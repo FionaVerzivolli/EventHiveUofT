@@ -1,43 +1,22 @@
 package app.view;
 
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.FlowLayout;
-import java.awt.Font;
-import java.awt.Point;
+import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.geom.Point2D;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-
-import javax.swing.BoxLayout;
-import javax.swing.JButton;
-import javax.swing.JPanel;
+import java.util.*;
+import javax.swing.*;
 
 import org.jxmapviewer.JXMapViewer;
-import org.jxmapviewer.viewer.DefaultTileFactory;
-import org.jxmapviewer.viewer.DefaultWaypoint;
-import org.jxmapviewer.viewer.GeoPosition;
-import org.jxmapviewer.viewer.TileFactoryInfo;
-import org.jxmapviewer.viewer.WaypointPainter;
+import org.jxmapviewer.viewer.*;
 
 import app.interface_adapter.display_event.DisplayEventController;
 import app.interface_adapter.home.HomeController;
 import app.interface_adapter.home.HomeViewModel;
 import app.interface_adapter.view_event.ViewEventController;
 
-/**
- * The HomeView class represents the main view of the application. It provides a graphical interface
- * for users to interact with events, maps, and navigation functionality.
- * This class manages the layout, components, and interactions within the home view.
- */
 public class HomeView extends JPanel implements PropertyChangeListener {
 
     private static final int MIN_ZOOM_LEVEL = 1;
@@ -53,36 +32,29 @@ public class HomeView extends JPanel implements PropertyChangeListener {
     private static final int MEDIUM_ZOOM_THRESHOLD = 7;
     private static final int HIGH_ZOOM_THRESHOLD = 9;
     private static final int TILE_SIZE = 256;
-    private static final int BUTTON_WIDTH = 120;
-    private static final int BUTTON_HEIGHT = 30;
-    private static final int BUTTON_FONT_SIZE = 16;
+    private static final int BUTTON_FONT_SIZE = 15;
     private static final int WAYPOINT_RADIUS = 6;
-    private static final Map<String, Color> EVENT_TAG_COLORS = Map.of(
-            "Gaming", Color.GREEN,
-            "Music", Color.BLACK,
-            "Sports", Color.CYAN,
-            "Art and Culture", Color.ORANGE,
-            "Education", Color.PINK,
-            "Travel", Color.GRAY,
-            "Festival", Color.YELLOW
-    );
+    private static final int SIDEBAR_PADDING = 10;
+    private static final int SIDEBAR_SPACING = 12;
+    private static final int TITLE_FONT_SIZE = 24;
+    private static final int BUTTON_WIDTH = 150;
+    private static final int BUTTON_HEIGHT = 40;
 
-    // Constant for the view name for navigation purposes
+    // Color palette
+    private static final Color SIDEBAR_BG = new Color(250, 250, 252);           // Very light warm gray
+    private static final Color BUTTON_BG = Color.WHITE;                         // White
+    private static final Color BUTTON_BG_HOVER = new Color(2, 36, 56, 30);   // Vibrant blue, very light
+    private static final Color BUTTON_BORDER = new Color(2, 36, 56);         // Vibrant blue
+    private static final Color TITLE_COLOR = new Color(2, 36, 56);           // Vibrant blue
+
     private static final String VIEW_NAME = "Home";
-
-    // View model required for managing logic for view
     private final HomeViewModel homeViewModel;
     private final DisplayEventController displayEventController;
     private ViewEventController viewEventController;
-
     private JPanel parentPanel;
-
     private HomeController homeController;
-
-    // List of events
     private ArrayList<ArrayList<Object>> events;
 
-    // Buttons for zooming in, out, logging out, and creating an event
     private final JButton zoomInButton;
     private final JButton zoomOutButton;
     private final JButton logOutButton;
@@ -92,129 +64,130 @@ public class HomeView extends JPanel implements PropertyChangeListener {
     private final JButton viewCreatedButton;
     private final JButton modifyEventButton;
 
-    // Double declaring the zoom level, which is adjusted later in the code
     private double ZOOM_LEVEL;
-
-    // Map viewer to display the map
     private JXMapViewer mapViewer;
 
-    /**
-     * Constructor for the HomeView class.
-     * Initializes the view components, map viewer, and event listeners.
-     *
-     * @param homeViewModel the view model for the home view.
-     * @param displayEventController the controller for handling event display logic.
-     */
     public HomeView(HomeViewModel homeViewModel, DisplayEventController displayEventController) {
         this.homeViewModel = homeViewModel;
         this.displayEventController = displayEventController;
         this.events = displayEventController.execute();
-        // Add view as listener
         this.homeViewModel.addPropertyChangeListener(this);
 
-        // Create buttons with labels and event handles
-        zoomInButton = createButton("Zoom in", evt -> handleZoomInAction());
-        zoomOutButton = createButton("Zoom out", evt -> handleZoomOutAction());
-        logOutButton = createButton("Log out", evt -> handleLogoutAction());
-        filterButton = createButton("Filter", evt -> handleFilterAction());
-        createEventButton = createButton("Create event", evt -> handleEventAction());
-        viewRSVPButton = createButton("View RSVP", evt -> handleViewRSVPAction());
-        viewCreatedButton = createButton("View Created", evt -> handleViewCreatedEvents());
-        modifyEventButton = createButton("Modify Event", evt -> handleViewModifyEvent());
+        // Styled buttons
+        zoomInButton = createStyledButton("+", evt -> handleZoomInAction());
+        zoomOutButton = createStyledButton("-", evt -> handleZoomOutAction());
+        logOutButton = createStyledButton("Log out", evt -> handleLogoutAction());
+        filterButton = createStyledButton("Filter", evt -> handleFilterAction());
+        createEventButton = createStyledButton("Create event", evt -> handleEventAction());
+        viewRSVPButton = createStyledButton("View RSVP", evt -> handleViewRSVPAction());
+        viewCreatedButton = createStyledButton("View Created", evt -> handleViewCreatedEvents());
+        modifyEventButton = createStyledButton("Modify Event", evt -> handleViewModifyEvent());
 
-        // Set panel layout
         setLayout(new BorderLayout());
+        setBackground(SIDEBAR_BG);
 
-        // Set up view components
         setupView();
     }
 
-    /**
-     * Function that sets parent panel in order for navigation
-     * between views to be possible.
-     *
-     * @param parentPanel .
-     */
     public void setParentPanel(JPanel parentPanel) {
         this.parentPanel = parentPanel;
     }
 
-    /**
-     * Function that draws and sets up the map viewer, sidebar, and
-     * zoom panel.
-     */
     private void setupView() {
-        // Set up the map viewer
         mapViewer = setupMapViewer();
 
-        // Create sidebar by initializing a new JPanel
         JPanel sidebar = new JPanel();
-
-        // Set layout for sidebar
         sidebar.setLayout(new BoxLayout(sidebar, BoxLayout.Y_AXIS));
+        sidebar.setBackground(SIDEBAR_BG);
+        sidebar.setBorder(BorderFactory.createEmptyBorder(SIDEBAR_PADDING, SIDEBAR_PADDING, SIDEBAR_PADDING, SIDEBAR_PADDING));
+        sidebar.setPreferredSize(new Dimension(180, 0));
 
-        // Add required buttons
-        sidebar.add(logOutButton);
-        sidebar.add(createEventButton);
-        sidebar.add(filterButton);
-        sidebar.add(viewRSVPButton);
-        sidebar.add(viewCreatedButton);
-        sidebar.add(modifyEventButton);
+        // Title label
+        JLabel titleLabel = new JLabel("EventHive", JLabel.CENTER);
+        titleLabel.setFont(getFontWithFallback("Inter", Font.BOLD, TITLE_FONT_SIZE));
+        titleLabel.setForeground(TITLE_COLOR);
+        titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        titleLabel.setMaximumSize(new Dimension(180, 40));
 
-        // Set the sidebar to be at the screen's left
+        sidebar.add(titleLabel);
+        sidebar.add(Box.createVerticalStrut(SIDEBAR_SPACING));
+
+        // Add buttons with spacing
+        addSidebarButton(sidebar, logOutButton);
+        addSidebarButton(sidebar, createEventButton);
+        addSidebarButton(sidebar, filterButton);
+        addSidebarButton(sidebar, viewRSVPButton);
+        addSidebarButton(sidebar, viewCreatedButton);
+        addSidebarButton(sidebar, modifyEventButton);
+
         add(sidebar, BorderLayout.WEST);
 
-        // Create zoom panel using the same logic as above
-        JPanel zoomPanel = new JPanel();
-        zoomPanel.setLayout(new FlowLayout(FlowLayout.CENTER));
-        zoomPanel.add(zoomInButton);
-        zoomPanel.add(zoomOutButton);
+        // Overlay zoom buttons at top-right of map
+        int zoomButtonSize = 64; // Slightly larger for better visibility
+        int overlayPanelWidth = zoomButtonSize;
+        int overlayPanelHeight = zoomButtonSize * 2 + 16; // 16px spacing
 
-        // Set the zoom panel to be at the bottom of the screen
-        add(zoomPanel, BorderLayout.SOUTH);
+        // Style zoomInButton
+        zoomInButton.setPreferredSize(new Dimension(zoomButtonSize, zoomButtonSize));
+        zoomInButton.setMaximumSize(new Dimension(zoomButtonSize, zoomButtonSize));
+        zoomInButton.setMinimumSize(new Dimension(zoomButtonSize, zoomButtonSize));
+        zoomInButton.setFont(getFontWithFallback("Inter", Font.BOLD, 32));
+        zoomInButton.setBackground(BUTTON_BG);
+        zoomInButton.setForeground(BUTTON_BORDER);
 
-        // Set the map to be at the center of the screen
-        add(mapViewer, BorderLayout.CENTER);
+        // Style zoomOutButton
+        zoomOutButton.setPreferredSize(new Dimension(zoomButtonSize, zoomButtonSize));
+        zoomOutButton.setMaximumSize(new Dimension(zoomButtonSize, zoomButtonSize));
+        zoomOutButton.setMinimumSize(new Dimension(zoomButtonSize, zoomButtonSize));
+        zoomOutButton.setFont(getFontWithFallback("Inter", Font.BOLD, 32));
+        zoomOutButton.setBackground(BUTTON_BG);
+        zoomOutButton.setForeground(BUTTON_BORDER);
+
+        JPanel overlayPanel = new JPanel();
+        overlayPanel.setLayout(new BoxLayout(overlayPanel, BoxLayout.Y_AXIS));
+        overlayPanel.setOpaque(false);
+        overlayPanel.setSize(overlayPanelWidth, overlayPanelHeight);
+
+        overlayPanel.add(zoomInButton);
+        overlayPanel.add(Box.createVerticalStrut(16));
+        overlayPanel.add(zoomOutButton);
+
+        // Use a JLayeredPane to overlay the zoom buttons on the map
+        JLayeredPane layeredPane = new JLayeredPane();
+        layeredPane.setLayout(null);
+        mapViewer.setBounds(0, 0, 1000, 700);
+        int rightMargin = 20;
+
+        overlayPanel.setBounds(mapViewer.getWidth() - overlayPanelWidth - rightMargin, 16, overlayPanelWidth, overlayPanelHeight);
+
+        layeredPane.add(mapViewer, JLayeredPane.DEFAULT_LAYER);
+        layeredPane.add(overlayPanel, JLayeredPane.PALETTE_LAYER);
+
+        // Listen for resize to reposition overlay
+        layeredPane.addComponentListener(new java.awt.event.ComponentAdapter() {
+            public void componentResized(java.awt.event.ComponentEvent e) {
+                mapViewer.setSize(layeredPane.getSize());
+                int x = layeredPane.getWidth() - overlayPanel.getWidth() - 16;
+                int y = 16;
+                overlayPanel.setLocation(Math.max(x, 0), y);
+            }
+        });
+
+        sidebar.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createMatteBorder(0, 0, 0, 2, BUTTON_BORDER), // no top border
+                BorderFactory.createEmptyBorder(SIDEBAR_PADDING, SIDEBAR_PADDING, SIDEBAR_PADDING, SIDEBAR_PADDING)
+        ));
+        add(layeredPane, BorderLayout.CENTER);
     }
 
-    /**
-     * Because there are no features for clicking waypoints, this function
-     * is intended to take the distance between two geopositions on our map, using the
-     * Haversine formula, which is a formula commonly used for finding the distance between
-     * two points on a sphere (cool new knowledge gained!)
-     *
-     * @param pos1 the first location on the map.
-     * @param pos2 the second location on the map.
-     */
-    private double calculateDistance(GeoPosition pos1, GeoPosition pos2) {
-
-        // Do some math and convert the latitude and longitude from degrees to radians using built-in function
-        double lat1 = Math.toRadians(pos1.getLatitude());
-        double lon1 = Math.toRadians(pos1.getLongitude());
-        double lat2 = Math.toRadians(pos2.getLatitude());
-        double lon2 = Math.toRadians(pos2.getLongitude());
-
-        // Calculate distance between points
-        double deltaLat = lat2 - lat1;
-        double deltaLon = lon2 - lon1;
-
-        // Use super secret and special Haversine formula (too long to type out)
-        double a = Math.sin(deltaLat / 2) * Math.sin(deltaLat / 2)
-                + Math.cos(lat1) * Math.cos(lat2)
-                * Math.sin(deltaLon / 2) * Math.sin(deltaLon / 2);
-
-        // Central angle calculation for Haversine's formula
-        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-
-        // Return the distance between the points in meters
-        return EARTH_RADIUS * c;
+    private void addSidebarButton(JPanel sidebar, JButton button) {
+        button.setAlignmentX(Component.CENTER_ALIGNMENT);
+        button.setMaximumSize(new Dimension(BUTTON_WIDTH, BUTTON_HEIGHT));
+        button.setPreferredSize(new Dimension(BUTTON_WIDTH, BUTTON_HEIGHT));
+        sidebar.add(button);
+        sidebar.add(Box.createVerticalStrut(SIDEBAR_SPACING));
     }
 
-    /**
-     * Create and set up the JXMapViewer and its
-     * initial properties. Includes drawing all the waypoints
-     * to the map.
-     */
     private JXMapViewer setupMapViewer() {
         JXMapViewer mapViewer = MapViewerSingleton.getInstance();
 
@@ -282,33 +255,50 @@ public class HomeView extends JPanel implements PropertyChangeListener {
             Color color = waypointColors.getOrDefault(waypoint, Color.BLACK);
             String title = waypointTitles.getOrDefault(waypoint, "");
 
+            // Draw waypoint marker (filled oval with black border)
             g.setColor(color);
             g.fillOval((int) point.getX() - WAYPOINT_RADIUS, (int) point.getY() - WAYPOINT_RADIUS,
                     2 * WAYPOINT_RADIUS, 2 * WAYPOINT_RADIUS);
-
             g.setColor(Color.BLACK);
-            g.drawString(title, (int) point.getX() + WAYPOINT_RADIUS + 2, (int) point.getY());
+            g.drawOval((int) point.getX() - WAYPOINT_RADIUS, (int) point.getY() - WAYPOINT_RADIUS,
+                    2 * WAYPOINT_RADIUS, 2 * WAYPOINT_RADIUS);
+
+            // Draw label with rounded border and background
+            if (!title.isEmpty()) {
+                Color bg_colour = new Color(241, 248, 250); // Use your desired background color
+                FontMetrics fm = g.getFontMetrics();
+                int textWidth = fm.stringWidth(title);
+                int textHeight = fm.getHeight();
+                int arc = 12;
+                int paddingX = 8;
+                int paddingY = 4;
+                int labelX = (int) point.getX() + WAYPOINT_RADIUS + 6;
+                int labelY = (int) point.getY() - textHeight / 2 - paddingY;
+
+                // Background
+                g.setColor(bg_colour);
+                g.fillRoundRect(labelX, labelY, textWidth + 2 * paddingX, textHeight + 2 * paddingY, arc, arc);
+
+                // Border
+                g.setColor(Color.GRAY);
+                g.drawRoundRect(labelX, labelY, textWidth + 2 * paddingX, textHeight + 2 * paddingY, arc, arc);
+
+                // Text
+                g.setColor(Color.BLACK);
+                g.drawString(title, labelX + paddingX, labelY + fm.getAscent() + paddingY);
+            }
         });
 
         waypointPainter.setWaypoints(waypoints);
         mapViewer.setOverlayPainter(waypointPainter);
 
         mapViewer.addMouseListener(new MouseAdapter() {
-            /**
-             * Mouse listener to get extract geoposition, which is then compared against
-             * all events and the first geoposition within 15 meters of the user's mouse
-             * click will pop up.
-             * */
             public void mouseClicked(MouseEvent e) {
                 GeoPosition clickedGeoPosition = mapViewer.convertPointToGeoPosition(e.getPoint());
-
-                // Check if the click is near a waypoint by looping through all waypoints...
                 for (DefaultWaypoint waypoint : waypoints) {
                     GeoPosition wpPosition = waypoint.getPosition();
                     double distance = calculateDistance(clickedGeoPosition, wpPosition);
-
                     if (distance < (20 * mapViewer.getZoom())) {
-                        System.out.println(mapViewer.getZoom());
                         String title = waypointTitles.get(waypoint);
                         viewEvent(title);
                     }
@@ -317,74 +307,54 @@ public class HomeView extends JPanel implements PropertyChangeListener {
         });
 
         setupDragFunctionality(mapViewer);
-
         return mapViewer;
     }
 
-    /**
-     * Open the event's info page after clicking on it.
-     * @param title the title of the event
-     */
-    private void viewEvent(String title) {
-        viewEventController.execute(title);
+    private double calculateDistance(GeoPosition pos1, GeoPosition pos2) {
+        double lat1 = Math.toRadians(pos1.getLatitude());
+        double lon1 = Math.toRadians(pos1.getLongitude());
+        double lat2 = Math.toRadians(pos2.getLatitude());
+        double lon2 = Math.toRadians(pos2.getLongitude());
+        double deltaLat = lat2 - lat1;
+        double deltaLon = lon2 - lon1;
+        double a = Math.sin(deltaLat / 2) * Math.sin(deltaLat / 2)
+                + Math.cos(lat1) * Math.cos(lat2)
+                * Math.sin(deltaLon / 2) * Math.sin(deltaLon / 2);
+        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        return EARTH_RADIUS * c;
     }
 
-    /**
-     * Add dragging functionality to the map, so that when a user
-     * drags the map the screen follows the cursor and centralizes
-     * the map to show the dragged location.
-     * @param mapViewer the map viewer object.
-     */
     private void setupDragFunctionality(JXMapViewer mapViewer) {
-        // Start tracking the cursor's location by setting it to nothing
         final Point[] lastMousePosition = {null};
-
-        // Record the cursor's position by tracking when the mouse is pressed
         mapViewer.addMouseListener(new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent e) {
                 lastMousePosition[0] = e.getPoint();
             }
         });
-        // User dragging screen makes the map move:
         mapViewer.addMouseMotionListener(new MouseAdapter() {
             @Override
             public void mouseDragged(MouseEvent e) {
-                // First, adjust tiles scrolled based off of user's zoom level.
-                System.out.println(mapViewer.getZoom());
                 if (mapViewer.getZoom() <= LOW_ZOOM_THRESHOLD) {
                     ZOOM_LEVEL = ZOOM_THRESHOLD_LOW;
-                }
-                else if (mapViewer.getZoom() <= MEDIUM_ZOOM_THRESHOLD) {
+                } else if (mapViewer.getZoom() <= MEDIUM_ZOOM_THRESHOLD) {
                     ZOOM_LEVEL = ZOOM_THRESHOLD_MEDIUM;
-                }
-                else if (mapViewer.getZoom() <= HIGH_ZOOM_THRESHOLD) {
+                } else if (mapViewer.getZoom() <= HIGH_ZOOM_THRESHOLD) {
                     ZOOM_LEVEL = ZOOM_THRESHOLD_HIGH;
-                }
-                else {
+                } else {
                     ZOOM_LEVEL = ZOOM_MULTIPLIER * mapViewer.getZoom();
                 }
-                // If the user moved their mouse, track the distance
                 if (lastMousePosition[0] != null) {
                     Point currentMousePosition = e.getPoint();
-                    // Record the change in X coordinate
                     int deltaX = currentMousePosition.x - lastMousePosition[0].x;
-
-                    // Record the change in Y coordinate
                     int deltaY = currentMousePosition.y - lastMousePosition[0].y;
                     GeoPosition currentPosition = mapViewer.getAddressLocation();
-
-                    // Adjust the location based off of the change in coordinates and zoom level
                     double longitudeDelta = -deltaX * ZOOM_LEVEL;
                     double latitudeDelta = deltaY * ZOOM_LEVEL;
-
-                    // Update the location displayed on the user's screen
                     GeoPosition newPosition = new GeoPosition(
                             currentPosition.getLatitude() + latitudeDelta,
                             currentPosition.getLongitude() + longitudeDelta
                     );
-
-                    // Update the map viewer's address location
                     mapViewer.setAddressLocation(newPosition);
                     lastMousePosition[0] = currentMousePosition;
                 }
@@ -392,10 +362,10 @@ public class HomeView extends JPanel implements PropertyChangeListener {
         });
     }
 
-    /**
-     * Function to zoom in on the map by
-     * decreasing mapViewer's zoom level.
-     */
+    private void viewEvent(String title) {
+        viewEventController.execute(title);
+    }
+
     private void handleZoomInAction() {
         int currentZoom = mapViewer.getZoom();
         if (currentZoom > 1) {
@@ -403,10 +373,6 @@ public class HomeView extends JPanel implements PropertyChangeListener {
         }
     }
 
-    /**
-     * Function to zoom out on the map by
-     * increasing mapViewer's zoom level.
-     */
     private void handleZoomOutAction() {
         int currentZoom = mapViewer.getZoom();
         if (currentZoom < MAX_ZOOM_LEVEL) {
@@ -414,19 +380,10 @@ public class HomeView extends JPanel implements PropertyChangeListener {
         }
     }
 
-    /**
-     * Function to switch screens to the create
-     * event screen when the create event button
-     * is pressed.
-     */
     private void handleEventAction() {
         homeController.switchToCreateEventView();
     }
 
-    /**
-     * Function to switch screens to the signup
-     * screen whenever the logout button is pressed.
-     */
     private void handleLogoutAction() {
         homeController.switchToLoginView();
     }
@@ -447,59 +404,55 @@ public class HomeView extends JPanel implements PropertyChangeListener {
         homeController.switchToModifyEventView();
     }
 
-    /**
-     * Function to navigate from this screen to a different screen
-     * using the name of the new screen.
-     */
-
     @Override
     public void propertyChange(PropertyChangeEvent evt) {
-        // don't need any property change, just need to override because of IntelliJ
+        // No property change logic needed
     }
 
-    /**
-     * Function to create a button and set its desired
-     * properties like size, colour, font, and interactions
-     *
-     * @param text           text you want the button to display.
-     * @param actionListener desired action listener.
-     **/
-    private JButton createButton(String text, java.awt.event.ActionListener actionListener) {
-        // Create a new button
-        JButton button = new JButton(text);
-        final int createButtonWidth = BUTTON_WIDTH;
-        final int createButtonHeight = BUTTON_HEIGHT;
-        final int createButtonFontSize = BUTTON_FONT_SIZE;
-
-        // Set desired dimenstions
-        button.setPreferredSize(new Dimension(createButtonWidth, createButtonHeight));
-        button.setMaximumSize(new Dimension(createButtonWidth, createButtonHeight));
-
-        // Set desired colour scheme and appearance
-        button.setBackground(Color.decode("#48BF67"));
-        button.setForeground(Color.BLACK);
-        button.setFont(new Font("Arial", Font.BOLD, createButtonFontSize));
-
-        // Add an action listener for the button
+    private JButton createStyledButton(String text, java.awt.event.ActionListener actionListener) {
+        JButton button = new JButton(text) {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                // Draw background
+                g2.setColor(getModel().isRollover() ? BUTTON_BG_HOVER : BUTTON_BG);
+                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 18, 18);
+                // Draw lighter border
+                g2.setColor(BUTTON_BORDER);
+                g2.setStroke(new BasicStroke(2));
+                g2.drawRoundRect(1, 1, getWidth() - 2, getHeight() - 2, 18, 18);
+                // Draw text/icon
+                super.paintComponent(g);
+                g2.dispose();
+            }
+        };
+        button.setOpaque(false);
+        button.setContentAreaFilled(false);
+        button.setBorder(BorderFactory.createEmptyBorder(8, 18, 8, 18));
+        button.setPreferredSize(new Dimension(BUTTON_WIDTH, BUTTON_HEIGHT));
+        button.setMaximumSize(new Dimension(BUTTON_WIDTH, BUTTON_HEIGHT));
+        button.setMinimumSize(new Dimension(BUTTON_WIDTH, BUTTON_HEIGHT));
+        button.setFont(getFontWithFallback("Inter", Font.BOLD, BUTTON_FONT_SIZE));
+        button.setForeground(BUTTON_BORDER); // lighter text color
+        button.setFocusPainted(false);
+        button.setCursor(new Cursor(Cursor.HAND_CURSOR));
         button.addActionListener(actionListener);
-
-        // Add hover effect to button by making the background darker when clicked
         button.addMouseListener(new MouseAdapter() {
-            public void mouseEntered(MouseEvent evt) {
-                button.setBackground(Color.decode("#2E7A46"));
-            }
-
-            // Set the background back to its original colour after hovering
-            public void mouseExited(MouseEvent evt) {
-                button.setBackground(Color.decode("#48BF67"));
-            }
+            public void mouseEntered(MouseEvent evt) { button.repaint(); }
+            public void mouseExited(MouseEvent evt) { button.repaint(); }
         });
         return button;
     }
 
-    /**
-     * Function to return the view name of homeview.
-     */
+    private Font getFontWithFallback(String preferred, int style, int size) {
+        Font font = new Font(preferred, style, size);
+        if (!font.getFamily().equals(preferred)) {
+            font = new Font("SansSerif", style, size);
+        }
+        return font;
+    }
+
     public String getViewName() {
         return VIEW_NAME;
     }

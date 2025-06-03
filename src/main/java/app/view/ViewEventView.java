@@ -1,18 +1,11 @@
 package app.view;
 
-import java.awt.BorderLayout;
-import java.awt.FlowLayout;
-import java.awt.Font;
+import java.awt.*;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-
-import javax.swing.Box;
-import javax.swing.BoxLayout;
-import javax.swing.JButton;
-import javax.swing.JLabel;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
+import javax.swing.*;
 import javax.swing.border.EmptyBorder;
+import javax.swing.border.LineBorder;
 
 import app.entity.Event.Event;
 import app.interface_adapter.rsvp_event.RSVPController;
@@ -23,14 +16,23 @@ import app.interface_adapter.view_event.ViewEventViewModel;
 public class ViewEventView extends JPanel implements PropertyChangeListener {
     private static final String VIEW_NAME = "viewEvent";
 
-    // Padding and Margins
-    private static final int PANEL_PADDING_SMALL = 10;
-    private static final int PANEL_PADDING_LARGE = 20;
-    private static final int VERTICAL_SPACING = 15;
+    // Unified color palette
+    private static final Color BG_COLOR = new Color(250, 250, 252);                // Very light warm gray
+    private static final Color CARD_BG = Color.WHITE;                              // Card background
+    private static final Color BUTTON_BG = Color.WHITE;                            // Button background
+    private static final Color BUTTON_BG_HOVER = new Color(2, 36, 56, 30);         // Vibrant blue, very light
+    private static final Color BUTTON_BORDER = new Color(2, 36, 56);               // Vibrant blue
+    private static final Color TITLE_COLOR = new Color(2, 36, 56);                 // Vibrant blue
 
-    // Font Sizes
-    private static final int TITLE_FONT_SIZE = 36;
-    private static final int LABEL_FONT_SIZE_LARGE = 30;
+    // Sizing
+    private static final int PANEL_PADDING = 20;
+    private static final int CARD_PADDING = 30;
+    private static final int VERTICAL_SPACING = 18;
+    private static final int TITLE_FONT_SIZE = 32;
+    private static final int LABEL_FONT_SIZE = 20;
+    private static final int BUTTON_FONT_SIZE = 16;
+    private static final int BUTTON_WIDTH = 150;
+    private static final int BUTTON_HEIGHT = 40;
 
     private ViewEventViewModel viewEventViewModel;
     private final JButton rsvpButton;
@@ -42,24 +44,58 @@ public class ViewEventView extends JPanel implements PropertyChangeListener {
         this.viewEventViewModel = viewEventViewModel;
         this.viewEventViewModel.addPropertyChangeListener(this);
 
-        this.setLayout(new BorderLayout());
-        this.setBorder(new EmptyBorder(PANEL_PADDING_SMALL, PANEL_PADDING_SMALL,
-                PANEL_PADDING_SMALL, PANEL_PADDING_SMALL));
+        setLayout(new BorderLayout());
+        setBackground(BG_COLOR);
+        setBorder(new EmptyBorder(PANEL_PADDING, PANEL_PADDING, PANEL_PADDING, PANEL_PADDING));
 
-        rsvpButton = new JButton("RSVP");
-        rsvpButton.addActionListener(e -> rsvpEvent());
+        rsvpButton = createStyledButton("RSVP", e -> rsvpEvent());
+        homeButton = createStyledButton("Go Home", e -> goBackHome());
 
-        homeButton = new JButton("Go Home");
-        homeButton.addActionListener(e -> goBackHome());
-
-        JPanel buttonPanel = new JPanel();
-        buttonPanel.setLayout(new FlowLayout(FlowLayout.CENTER));
-        // Align buttons horizontally
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 0));
+        buttonPanel.setOpaque(false);
         buttonPanel.add(rsvpButton);
         buttonPanel.add(homeButton);
 
-        // Add the button panel to the bottom (SOUTH) of the main layout
         add(buttonPanel, BorderLayout.SOUTH);
+    }
+
+    private JButton createStyledButton(String text, java.awt.event.ActionListener actionListener) {
+        JButton button = new JButton(text) {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(getModel().isRollover() ? BUTTON_BG_HOVER : BUTTON_BG);
+                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 18, 18);
+                g2.setColor(BUTTON_BORDER);
+                g2.setStroke(new BasicStroke(2));
+                g2.drawRoundRect(1, 1, getWidth() - 2, getHeight() - 2, 18, 18);
+                g2.dispose();
+                super.paintComponent(g);
+            }
+        };
+        button.setOpaque(false);
+        button.setContentAreaFilled(false);
+        button.setBorder(BorderFactory.createEmptyBorder(8, 18, 8, 18));
+        button.setPreferredSize(new Dimension(BUTTON_WIDTH, BUTTON_HEIGHT));
+        button.setFont(getFontWithFallback("Inter", Font.BOLD, BUTTON_FONT_SIZE));
+        button.setForeground(BUTTON_BORDER);
+        button.setFocusPainted(false);
+        button.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        button.addActionListener(actionListener);
+        button.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseEntered(java.awt.event.MouseEvent evt) { button.repaint(); }
+            public void mouseExited(java.awt.event.MouseEvent evt) { button.repaint(); }
+        });
+        return button;
+    }
+
+    private Font getFontWithFallback(String preferred, int style, int size) {
+        Font font = new Font(preferred, style, size);
+        if (!font.getFamily().equals(preferred)) {
+            font = new Font("SansSerif", style, size);
+        }
+        return font;
     }
 
     private void rsvpEvent() {
@@ -80,100 +116,98 @@ public class ViewEventView extends JPanel implements PropertyChangeListener {
 
         this.removeAll();
         if (event != null) {
-            JPanel eventDetailsPanel = new JPanel();
-            eventDetailsPanel.setLayout(new BoxLayout(eventDetailsPanel, BoxLayout.Y_AXIS));
-            eventDetailsPanel.setBorder(new EmptyBorder(PANEL_PADDING_LARGE, PANEL_PADDING_LARGE,
-                    PANEL_PADDING_LARGE, PANEL_PADDING_LARGE));
+            JPanel cardPanel = new JPanel();
+            cardPanel.setLayout(new BoxLayout(cardPanel, BoxLayout.Y_AXIS));
+            cardPanel.setBackground(CARD_BG);
+            cardPanel.setBorder(BorderFactory.createCompoundBorder(
+                    new RoundedBorder(BUTTON_BORDER, 2, 24),
+                    new EmptyBorder(CARD_PADDING, CARD_PADDING, CARD_PADDING, CARD_PADDING)
+            ));
 
-            // Add labels with VERY large fonts
-            JLabel titleLabel = new JLabel("Title: " + event.getTitle());
-            titleLabel.setFont(new Font("Arial", Font.BOLD, TITLE_FONT_SIZE));
+            JLabel titleLabel = new JLabel(event.getTitle());
+            titleLabel.setFont(getFontWithFallback("Inter", Font.BOLD, TITLE_FONT_SIZE));
+            titleLabel.setForeground(TITLE_COLOR);
+            titleLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-            JLabel organizerLabel = new JLabel("Organizer: " + event.getOrganizer());
-            organizerLabel.setFont(new Font("Arial", Font.PLAIN, LABEL_FONT_SIZE_LARGE));
+            JLabel organizerLabel = createInfoLabel("Organizer: " + event.getOrganizer());
+            JLabel descriptionLabel = createInfoLabel("<html>Description: " + event.getDescription() + "</html>");
+            JLabel dateTimeLabel = createInfoLabel("Date & Time: " + event.getDateTime());
+            JLabel capacityLabel = createInfoLabel("Capacity: " + event.getCapacity());
+            JLabel tagsLabel = createInfoLabel("Tags: " + String.join(", ", event.getTags()));
 
-            JLabel descriptionLabel = new JLabel("<html>Description: " + event.getDescription() + "</html>");
-            descriptionLabel.setFont(new Font("Arial", Font.PLAIN, LABEL_FONT_SIZE_LARGE));
+            organizerLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+            descriptionLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+            dateTimeLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+            capacityLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+            tagsLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-            JLabel dateTimeLabel = new JLabel("Date & Time: " + event.getDateTime());
-            dateTimeLabel.setFont(new Font("Arial", Font.PLAIN, LABEL_FONT_SIZE_LARGE));
+            cardPanel.add(titleLabel);
+            cardPanel.add(Box.createVerticalStrut(VERTICAL_SPACING));
+            cardPanel.add(organizerLabel);
+            cardPanel.add(Box.createVerticalStrut(VERTICAL_SPACING));
+            cardPanel.add(descriptionLabel);
+            cardPanel.add(Box.createVerticalStrut(VERTICAL_SPACING));
+            cardPanel.add(dateTimeLabel);
+            cardPanel.add(Box.createVerticalStrut(VERTICAL_SPACING));
+            cardPanel.add(capacityLabel);
+            cardPanel.add(Box.createVerticalStrut(VERTICAL_SPACING));
+            cardPanel.add(tagsLabel);
 
-            JLabel capacityLabel = new JLabel("Capacity: " + event.getCapacity());
-            capacityLabel.setFont(new Font("Arial", Font.PLAIN, LABEL_FONT_SIZE_LARGE));
+            JPanel centerPanel = new JPanel(new GridBagLayout());
+            centerPanel.setOpaque(false);
+            centerPanel.add(cardPanel);
 
-            JLabel tagsLabel = new JLabel("Tags: " + String.join(", ", event.getTags()));
-            tagsLabel.setFont(new Font("Arial", Font.PLAIN, LABEL_FONT_SIZE_LARGE));
+            this.add(centerPanel, BorderLayout.CENTER);
 
-            // Add labels to the details panel
-            eventDetailsPanel.add(titleLabel);
-            eventDetailsPanel.add(Box.createVerticalStrut(VERTICAL_SPACING));
-            eventDetailsPanel.add(organizerLabel);
-            eventDetailsPanel.add(Box.createVerticalStrut(VERTICAL_SPACING));
-            eventDetailsPanel.add(descriptionLabel);
-            eventDetailsPanel.add(Box.createVerticalStrut(VERTICAL_SPACING));
-            eventDetailsPanel.add(dateTimeLabel);
-            eventDetailsPanel.add(Box.createVerticalStrut(VERTICAL_SPACING));
-            eventDetailsPanel.add(capacityLabel);
-            eventDetailsPanel.add(Box.createVerticalStrut(VERTICAL_SPACING));
-            eventDetailsPanel.add(tagsLabel);
-
-            // Add the details panel to the center of the main layout
-            this.add(eventDetailsPanel, BorderLayout.CENTER);
-
-            // Add buttons back at the bottom
-            JPanel buttonPanel = new JPanel();
-            buttonPanel.setLayout(new FlowLayout(FlowLayout.CENTER));
+            JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 0));
+            buttonPanel.setOpaque(false);
             buttonPanel.add(rsvpButton);
             buttonPanel.add(homeButton);
 
             this.add(buttonPanel, BorderLayout.SOUTH);
 
-            // Forcefully revalidate and repaint to ensure the UI updates
-            this.invalidate();
-            // Mark the panel as invalid
             this.revalidate();
-            // Recalculate layout
             this.repaint();
-            // Trigger a repaint
         }
     }
 
-    /**
-     * Navigates back to the home view by delegating the action
-     * to the associated {@link ViewEventController}.
-     */
+    private JLabel createInfoLabel(String text) {
+        JLabel label = new JLabel(text);
+        label.setFont(getFontWithFallback("Inter", Font.PLAIN, LABEL_FONT_SIZE));
+        label.setForeground(Color.DARK_GRAY);
+        label.setAlignmentX(Component.LEFT_ALIGNMENT);
+        return label;
+    }
+
     public void goBackHome() {
         viewEventController.switchToHomeView();
     }
 
-    /**
-     * Retrieves the name of this view. This name is used for navigation
-     * purposes within the application.
-     *
-     * @return the name of this view as a {@link String}.
-     */
     public String getViewName() {
         return VIEW_NAME;
     }
 
-    /**
-     * Sets the controller responsible for handling the logic and
-     * navigation actions related to viewing events.
-     * @param controller the {@link ViewEventController} instance to associate
-     *                   with this view. It must not be null.
-     * @throws IllegalArgumentException if the provided {@code controller} is null.
-     */
     public void setViewEventController(ViewEventController controller) {
         this.viewEventController = controller;
     }
 
-    /**
-     * Sets the controller responsible for handling RSVP actions for events.
-     * @param controller the {@link RSVPController} instance to associate
-     *                   with this view. It must not be null.
-     * @throws IllegalArgumentException if the provided {@code controller} is null.
-     */
     public void setRSVPEventController(RSVPController controller) {
         this.rsvpController = controller;
+    }
+}
+
+// --- RoundedBorder class ---
+class RoundedBorder extends LineBorder {
+    private final int arc;
+    public RoundedBorder(Color color, int thickness, int arc) {
+        super(color, thickness, true);
+        this.arc = arc;
+    }
+    @Override
+    public void paintBorder(Component c, Graphics g, int x, int y, int width, int height) {
+        Graphics2D g2 = (Graphics2D) g;
+        g2.setColor(lineColor);
+        g2.setStroke(new BasicStroke(thickness));
+        g2.drawRoundRect(x, y, width - 1, height - 1, arc, arc);
     }
 }

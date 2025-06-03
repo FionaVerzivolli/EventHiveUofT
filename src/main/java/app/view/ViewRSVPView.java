@@ -1,20 +1,10 @@
 package app.view;
 
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.FlowLayout;
-import java.awt.Font;
+import java.awt.*;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.List;
-
-import javax.swing.BoxLayout;
-import javax.swing.JButton;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JSeparator;
-import javax.swing.SwingConstants;
+import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
 
@@ -22,24 +12,21 @@ import app.interface_adapter.view_rsvp.ViewRSVPController;
 import app.interface_adapter.view_rsvp.ViewRSVPState;
 import app.interface_adapter.view_rsvp.ViewRSVPViewModel;
 
-/**
- * The {@code ViewRSVPView} class represents a graphical user interface (GUI) for displaying
- * events that the user has RSVPed to. It allows the user to view their RSVPed events and
- * navigate back to the home view.
- */
 public class ViewRSVPView extends JPanel implements PropertyChangeListener {
+    // Unified color palette
+    private static final Color BG_COLOR = new Color(250, 250, 252);
+    private static final Color CARD_BG = Color.WHITE;
+    private static final Color BUTTON_BG = Color.WHITE;
+    private static final Color BUTTON_BG_HOVER = new Color(2, 36, 56, 30);
+    private static final Color BUTTON_BORDER = new Color(2, 36, 56);
+    private static final Color BUTTON_TEXT = BUTTON_BORDER;
+    private static final Color TITLE_COLOR = BUTTON_BORDER;
+    private static final Color INPUT_LABEL = new Color(90, 100, 120);
 
-    // Padding and Margins
-    private static final int PANEL_PADDING = 10;
-    private static final int EVENT_PANEL_PADDING = 5;
-
-    // Font Sizes
-    private static final int TITLE_FONT_SIZE = 24;
-    private static final int EVENT_FONT_SIZE = 18;
-
-    // Border Properties
-    private static final int BORDER_THICKNESS = 1;
-    private static final Color BORDER_COLOR = Color.GRAY;
+    private static final int PANEL_PADDING = 16;
+    private static final int EVENT_CARD_PADDING = 14;
+    private static final int TITLE_FONT_SIZE = 22;
+    private static final int EVENT_FONT_SIZE = 16;
 
     private static final String VIEW_NAME = "viewRSVP";
     private final ViewRSVPViewModel viewRSVPViewModel;
@@ -52,113 +39,129 @@ public class ViewRSVPView extends JPanel implements PropertyChangeListener {
         this.viewRSVPViewModel = viewRSVPViewModel;
         this.viewRSVPViewModel.addPropertyChangeListener(this);
 
-        // Set up the panel layout
-        this.setLayout(new BorderLayout());
-        this.setBorder(new EmptyBorder(PANEL_PADDING, PANEL_PADDING, PANEL_PADDING, PANEL_PADDING));
+        setLayout(new BorderLayout());
+        setBackground(BG_COLOR);
+        setBorder(new EmptyBorder(PANEL_PADDING, PANEL_PADDING, PANEL_PADDING, PANEL_PADDING));
 
-        // Panel for events
+        // Events panel
         eventsPanel = new JPanel();
         eventsPanel.setLayout(new BoxLayout(eventsPanel, BoxLayout.Y_AXIS));
+        eventsPanel.setBackground(BG_COLOR);
         JScrollPane eventsScrollPane = new JScrollPane(eventsPanel);
-        eventsScrollPane.setBorder(new LineBorder(Color.GRAY, 1, true));
-        this.add(eventsScrollPane, BorderLayout.CENTER);
+        eventsScrollPane.setBorder(new LineBorder(BUTTON_BORDER, 1, true));
+        add(eventsScrollPane, BorderLayout.CENTER);
 
-        // Back button to return to the home view
-        viewRSVPButton = new JButton("view RSVPs");
-        viewRSVPButton.addActionListener(e -> viewRSVP());
-        backButton = new JButton("Back to Home");
-        backButton.addActionListener(e -> goToHome());
-        JPanel buttonPanel = new JPanel();
-        buttonPanel.setLayout(new FlowLayout(FlowLayout.CENTER));
+        // Buttons
+        viewRSVPButton = createStyledButton("View RSVPs", e -> viewRSVP());
+        backButton = createStyledButton("Back to Home", e -> goToHome());
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 0));
+        buttonPanel.setOpaque(false);
         buttonPanel.add(viewRSVPButton);
         buttonPanel.add(backButton);
-        this.add(buttonPanel, BorderLayout.SOUTH);
+        add(buttonPanel, BorderLayout.SOUTH);
     }
 
-    /**
-     * Update the view whenever the ViewRSVPState changes.
-     */
     @Override
     public void propertyChange(PropertyChangeEvent evt) {
         ViewRSVPState state = (ViewRSVPState) evt.getNewValue();
         List<String> rsvpEvents = state.getViewRSVP();
 
-        System.out.println("view rsvp event");
         eventsPanel.removeAll();
 
-        // Add a title label at the top
+        // Title
         JLabel titleLabel = new JLabel("Your RSVPed Events:");
-        titleLabel.setFont(new Font("Arial", Font.BOLD, TITLE_FONT_SIZE));
-        // Set a larger, bold font for the title
-        titleLabel.setBorder(new EmptyBorder(PANEL_PADDING, PANEL_PADDING, PANEL_PADDING, PANEL_PADDING));
-        // Add some padding around the title
+        titleLabel.setFont(getFontWithFallback("Inter", Font.BOLD, TITLE_FONT_SIZE));
+        titleLabel.setForeground(TITLE_COLOR);
+        titleLabel.setBorder(new EmptyBorder(0, 0, 12, 0));
         eventsPanel.add(titleLabel);
 
         if (rsvpEvents != null && !rsvpEvents.isEmpty()) {
             for (String eventName : rsvpEvents) {
-                // Create a panel for each event to group the label and separator
-                JPanel eventPanel = new JPanel();
-                eventPanel.setLayout(new BorderLayout());
-                eventPanel.setBorder(new EmptyBorder(EVENT_PANEL_PADDING, EVENT_PANEL_PADDING,
-                        EVENT_PANEL_PADDING, EVENT_PANEL_PADDING));
-                // Add padding to the panel
+                JPanel eventCard = new JPanel();
+                eventCard.setLayout(new BoxLayout(eventCard, BoxLayout.Y_AXIS));
+                eventCard.setBackground(CARD_BG);
+                eventCard.setBorder(BorderFactory.createCompoundBorder(
+                        new LineBorder(BUTTON_BORDER, 1, true),
+                        new EmptyBorder(EVENT_CARD_PADDING, EVENT_CARD_PADDING, EVENT_CARD_PADDING, EVENT_CARD_PADDING)
+                ));
+                eventCard.setAlignmentX(Component.LEFT_ALIGNMENT);
+                eventCard.setMaximumSize(new Dimension(Integer.MAX_VALUE, 60));
 
-                // Create the event label
                 JLabel eventLabel = new JLabel(eventName);
-                eventLabel.setFont(new Font("Arial", Font.PLAIN, EVENT_FONT_SIZE));
-                // Customize font size
-                eventPanel.add(eventLabel, BorderLayout.CENTER);
+                eventLabel.setFont(getFontWithFallback("Inter", Font.PLAIN, EVENT_FONT_SIZE));
+                eventLabel.setForeground(INPUT_LABEL);
 
-                // Add the event panel to the main events panel
-                eventsPanel.add(eventPanel);
-
-                // Add a horizontal separator
-                JSeparator separator = new JSeparator(SwingConstants.HORIZONTAL);
-                separator.setForeground(Color.GRAY);
-                eventsPanel.add(separator);
+                eventCard.add(eventLabel);
+                eventsPanel.add(Box.createVerticalStrut(8));
+                eventsPanel.add(eventCard);
             }
-        }
-        else {
-            // Add a label indicating no events if the list is empty
+        } else {
             JLabel noEventsLabel = new JLabel("No RSVP events found.");
-            noEventsLabel.setFont(new Font("Arial", Font.ITALIC, EVENT_FONT_SIZE));
-            // Italic font for the message
-            noEventsLabel.setBorder(new EmptyBorder(PANEL_PADDING, PANEL_PADDING, PANEL_PADDING, PANEL_PADDING));
-            // Add some padding around the label
+            noEventsLabel.setFont(getFontWithFallback("Inter", Font.ITALIC, EVENT_FONT_SIZE));
+            noEventsLabel.setForeground(INPUT_LABEL);
+            noEventsLabel.setBorder(new EmptyBorder(16, 0, 0, 0));
             eventsPanel.add(noEventsLabel);
         }
 
-        // Refresh the events panel
         eventsPanel.revalidate();
         eventsPanel.repaint();
     }
 
+    private JButton createStyledButton(String text, java.awt.event.ActionListener actionListener) {
+        JButton button = new JButton(text) {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(getModel().isRollover() ? BUTTON_BG_HOVER : BUTTON_BG);
+                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 18, 18);
+                g2.setColor(BUTTON_BORDER);
+                g2.setStroke(new BasicStroke(2));
+                g2.drawRoundRect(1, 1, getWidth() - 2, getHeight() - 2, 18, 18);
+                g2.dispose();
+                super.paintComponent(g);
+            }
+        };
+        button.setOpaque(false);
+        button.setContentAreaFilled(false);
+        button.setBorder(BorderFactory.createEmptyBorder(10, 22, 10, 22));
+        button.setFont(getFontWithFallback("Inter", Font.BOLD, 15));
+        button.setForeground(BUTTON_TEXT);
+        button.setFocusPainted(false);
+        button.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        button.addActionListener(actionListener);
+        button.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseEntered(java.awt.event.MouseEvent evt) { button.repaint(); }
+            public void mouseExited(java.awt.event.MouseEvent evt) { button.repaint(); }
+        });
+        return button;
+    }
+
+    private Font getFontWithFallback(String preferred, int style, int size) {
+        Font font = new Font(preferred, style, size);
+        if (!font.getFamily().equals(preferred)) {
+            font = new Font("SansSerif", style, size);
+        }
+        return font;
+    }
+
     private void viewRSVP() {
         ViewRSVPState currentState = viewRSVPViewModel.getState();
-        viewRSVPController.execute(currentState.getUsernameState());
+        if (viewRSVPController != null) {
+            viewRSVPController.execute(currentState.getUsernameState());
+        }
     }
 
-    /**
-     * Navigate back to the home view.
-     */
     private void goToHome() {
-        viewRSVPController.switchToHomeView();
+        if (viewRSVPController != null) {
+            viewRSVPController.switchToHomeView();
+        }
     }
 
-    /**
-     * Set the ViewRSVPController for this view.
-     *
-     * @param controller The ViewRSVPController to set.
-     */
     public void setViewRSVPController(ViewRSVPController controller) {
         this.viewRSVPController = controller;
     }
 
-    /**
-     * Get the view's name.
-     *
-     * @return The name of the view.
-     */
     public String getViewName() {
         return VIEW_NAME;
     }

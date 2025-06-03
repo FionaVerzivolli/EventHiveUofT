@@ -19,8 +19,6 @@ import javax.swing.JPasswordField;
 import javax.swing.JTextField;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
 import javax.swing.text.JTextComponent;
 
 import app.interface_adapter.register.RegisterController;
@@ -29,6 +27,18 @@ import app.interface_adapter.register.RegisterViewModel;
 
 public class RegisterView extends JPanel implements PropertyChangeListener {
     private static final String VIEW_NAME = "register";
+
+    // Color palette
+    private static final Color BG_COLOR = new Color(250, 250, 252);                // Very light warm gray
+    private static final Color BUTTON_BG = Color.WHITE;                            // White
+    private static final Color BUTTON_BG_HOVER = new Color(2, 36, 56, 30);         // Vibrant blue, very light
+    private static final Color BUTTON_BORDER = new Color(2, 36, 56);               // Vibrant blue
+    private static final Color BUTTON_TEXT = BUTTON_BORDER;                        // Vibrant blue
+    private static final Color TITLE_COLOR = BUTTON_BORDER;                        // Vibrant blue
+    private static final Color INPUT_BG = Color.WHITE;
+    private static final Color INPUT_BORDER = new Color(220, 225, 235);
+    private static final Color INPUT_BORDER_FOCUS = BUTTON_BORDER;
+    private static final Color INPUT_LABEL = new Color(90, 100, 120);
 
     private static final int PANEL_PADDING = 20;
     private static final int INPUT_FIELD_WIDTH = 400;
@@ -41,9 +51,9 @@ public class RegisterView extends JPanel implements PropertyChangeListener {
     private static final int VERTICAL_SPACING_EXTRA_LARGE = 50;
 
     // Font Sizes
-    private static final int TITLE_FONT_SIZE = 32;
-    private static final int INPUT_LABEL_FONT_SIZE = 14;
-    private static final int BUTTON_FONT_SIZE = 16;
+    private static final int TITLE_FONT_SIZE = 28;
+    private static final int INPUT_LABEL_FONT_SIZE = 15;
+    private static final int BUTTON_FONT_SIZE = 15;
 
     private final RegisterViewModel registerViewModel;
     private final JTextField usernameInputField;
@@ -53,57 +63,72 @@ public class RegisterView extends JPanel implements PropertyChangeListener {
     private final JButton loginButton;
     private RegisterController registerController;
 
+
+
     public RegisterView(RegisterViewModel registerViewModel) {
         this.registerViewModel = registerViewModel;
         this.registerViewModel.addPropertyChangeListener(this);
 
-        // Configure panel layout
         this.setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
-        this.setBackground(Color.decode("#D3D3D3"));
+        this.setBackground(BG_COLOR);
         this.setBorder(new EmptyBorder(PANEL_PADDING, PANEL_PADDING, PANEL_PADDING, PANEL_PADDING));
 
-        // Add "EventureUofT" heading
+        // Title
         JLabel titleLabel = new JLabel("EventHiveUofT", JLabel.CENTER);
-        titleLabel.setFont(new Font("Arial", Font.BOLD, TITLE_FONT_SIZE));
+        titleLabel.setFont(getFontWithFallback("Inter", Font.BOLD, TITLE_FONT_SIZE));
+        titleLabel.setForeground(TITLE_COLOR);
         titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-        titleLabel.setForeground(Color.decode("#2E4C34"));
 
-        // Build input fields
-        usernameInputField = createInputField("username");
-        emailInputField = createInputField("email");
-        passwordInputField = createPasswordField();
+        // Input fields
+        usernameInputField = createInputField("Enter your username...");
+        emailInputField = createInputField("Enter your email...");
+        passwordInputField = createPasswordField("Enter your password...");
 
-        // Create buttons
-        signupButton = createButton("Sign up", evt -> handleSignupAction());
-        loginButton = createButton("Log in", evt -> handleLoginAction());
+        // Buttons
+        signupButton = createStyledButton("Sign up", evt -> handleSignupAction());
+        loginButton = createStyledButton("Log in", evt -> handleLoginAction());
 
-        // Add listeners to input fields
         addDocumentListener(usernameInputField, () -> updateState("username"));
         addDocumentListener(emailInputField, () -> updateState("email"));
         addDocumentListener(passwordInputField, () -> updateState("password"));
 
-        // Add components to panel
+        // Add components, centering each main section
         this.add(Box.createVerticalStrut(VERTICAL_SPACING_SMALL));
         this.add(titleLabel);
         this.add(Box.createVerticalStrut(VERTICAL_SPACING_MEDIUM));
-        this.add(createLabelTextPanel("username", usernameInputField));
+
+        JPanel usernamePanel = createLabelTextPanel("Username:", usernameInputField);
+        usernamePanel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        this.add(usernamePanel);
+
         this.add(Box.createVerticalStrut(VERTICAL_SPACING_SMALL));
-        this.add(createLabelTextPanel("email", emailInputField));
+
+        JPanel emailPanel = createLabelTextPanel("Email:", emailInputField);
+        emailPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        this.add(emailPanel);
+
         this.add(Box.createVerticalStrut(INPUT_FIELD_HEIGHT));
-        this.add(createLabelTextPanel("password", passwordInputField));
+
+        JPanel passwordPanel = createLabelTextPanel("Password:", passwordInputField);
+        passwordPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        this.add(passwordPanel);
+
         this.add(Box.createVerticalStrut(VERTICAL_SPACING_EXTRA_LARGE));
-        this.add(createButtonPanel());
+
+        JPanel buttonPanel = createButtonPanel();
+        buttonPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        this.add(buttonPanel);
     }
 
     private JTextField createInputField(String placeholder) {
-        JTextField inputField = new JTextField(VERTICAL_SPACING_MEDIUM);
+        JTextField inputField = new JTextField(18);
         configureInputField(inputField, placeholder);
         return inputField;
     }
 
-    private JPasswordField createPasswordField() {
-        JPasswordField passwordField = new JPasswordField(VERTICAL_SPACING_MEDIUM);
-        configureInputField(passwordField, "password");
+    private JPasswordField createPasswordField(String placeholder) {
+        JPasswordField passwordField = new JPasswordField(18);
+        configureInputField(passwordField, placeholder);
         return passwordField;
     }
 
@@ -111,68 +136,97 @@ public class RegisterView extends JPanel implements PropertyChangeListener {
         inputField.setPreferredSize(new Dimension(INPUT_FIELD_WIDTH, INPUT_FIELD_HEIGHT));
         inputField.setMaximumSize(new Dimension(INPUT_FIELD_WIDTH, INPUT_FIELD_HEIGHT));
         inputField.setMinimumSize(new Dimension(INPUT_FIELD_WIDTH, INPUT_FIELD_HEIGHT));
-        inputField.setBorder(new LineBorder(Color.LIGHT_GRAY, 1, true));
-        inputField.setFont(new Font("Arial", Font.PLAIN, INPUT_LABEL_FONT_SIZE));
+        inputField.setBorder(BorderFactory.createCompoundBorder(
+                new LineBorder(INPUT_BORDER, 1, true),
+                BorderFactory.createEmptyBorder(8, 12, 8, 12)
+        ));
+        inputField.setFont(getFontWithFallback("Segoe UI", Font.PLAIN, INPUT_LABEL_FONT_SIZE));
         inputField.setForeground(Color.GRAY);
+        inputField.setBackground(INPUT_BG);
         inputField.setText(placeholder);
 
-        // Placeholder behavior
         inputField.addFocusListener(new java.awt.event.FocusAdapter() {
             public void focusGained(java.awt.event.FocusEvent evt) {
                 if (inputField.getText().equals(placeholder)) {
                     inputField.setText("");
                     inputField.setForeground(Color.BLACK);
                 }
+                inputField.setBorder(BorderFactory.createCompoundBorder(
+                        new LineBorder(INPUT_BORDER_FOCUS, 2, true),
+                        BorderFactory.createEmptyBorder(8, 12, 8, 12)
+                ));
             }
-
             public void focusLost(java.awt.event.FocusEvent evt) {
                 if (inputField.getText().isEmpty()) {
                     inputField.setForeground(Color.GRAY);
                     inputField.setText(placeholder);
                 }
+                inputField.setBorder(BorderFactory.createCompoundBorder(
+                        new LineBorder(INPUT_BORDER, 1, true),
+                        BorderFactory.createEmptyBorder(8, 12, 8, 12)
+                ));
             }
         });
     }
 
-    private JButton createButton(String text, java.awt.event.ActionListener actionListener) {
-        JButton button = new JButton(text);
+    private JButton createStyledButton(String text, java.awt.event.ActionListener actionListener) {
+        JButton button = new JButton(text) {
+            @Override
+            protected void paintComponent(java.awt.Graphics g) {
+                java.awt.Graphics2D g2 = (java.awt.Graphics2D) g.create();
+                g2.setRenderingHint(java.awt.RenderingHints.KEY_ANTIALIASING, java.awt.RenderingHints.VALUE_ANTIALIAS_ON);
+                // Background
+                g2.setColor(getModel().isRollover() ? BUTTON_BG_HOVER : BUTTON_BG);
+                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 18, 18);
+                // Border
+                g2.setColor(BUTTON_BORDER);
+                g2.setStroke(new java.awt.BasicStroke(2));
+                g2.drawRoundRect(1, 1, getWidth() - 2, getHeight() - 2, 18, 18);
+                // Text/icon
+                super.paintComponent(g);
+                g2.dispose();
+            }
+        };
+        button.setOpaque(false);
+        button.setContentAreaFilled(false);
+        button.setBorder(BorderFactory.createEmptyBorder(8, 22, 8, 22));
         button.setPreferredSize(new Dimension(BUTTON_WIDTH, BUTTON_HEIGHT));
         button.setMaximumSize(new Dimension(BUTTON_WIDTH, BUTTON_HEIGHT));
-        button.setBackground(Color.decode("#48BF67"));
-        button.setForeground(Color.WHITE);
-        button.setFont(new Font("Arial", Font.BOLD, BUTTON_FONT_SIZE));
-        button.setOpaque(true);
-        button.setContentAreaFilled(true);
-        button.setBorderPainted(true);
-        button.setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY));
+        button.setMinimumSize(new Dimension(BUTTON_WIDTH, BUTTON_HEIGHT));
+        button.setFont(getFontWithFallback("Inter", Font.BOLD, BUTTON_FONT_SIZE));
+        button.setForeground(BUTTON_TEXT);
+        button.setFocusPainted(false);
+        button.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
         button.addActionListener(actionListener);
-
-        // Add hover effect (simply make bg darker)
         button.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseEntered(java.awt.event.MouseEvent evt) {
-                button.setBackground(Color.decode("#2E7A46"));
-            }
-
-            public void mouseExited(java.awt.event.MouseEvent evt) {
-                button.setBackground(Color.decode("#48BF67"));
-            }
+            public void mouseEntered(java.awt.event.MouseEvent evt) { button.repaint(); }
+            public void mouseExited(java.awt.event.MouseEvent evt) { button.repaint(); }
         });
-
         return button;
     }
-
 
     private JPanel createLabelTextPanel(String labelText, JTextComponent inputField) {
         JPanel panel = new JPanel();
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
         panel.setOpaque(false);
 
-        JLabel label = new JLabel(labelText, JLabel.LEFT);
-        label.setFont(new Font("Arial", Font.PLAIN, INPUT_LABEL_FONT_SIZE));
+        // Set fixed width for the panel to match the input field
+        Dimension panelSize = new Dimension(INPUT_FIELD_WIDTH, INPUT_FIELD_HEIGHT + 30);
+        panel.setPreferredSize(panelSize);
+        panel.setMaximumSize(panelSize);
+        panel.setMinimumSize(panelSize);
+
+        JLabel label = new JLabel(labelText);
+        label.setFont(getFontWithFallback("Segoe UI", Font.BOLD, INPUT_LABEL_FONT_SIZE));
+        label.setForeground(INPUT_LABEL);
+        label.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        inputField.setAlignmentX(Component.LEFT_ALIGNMENT);
+
         panel.add(label);
         panel.add(Box.createVerticalStrut(VERTICAL_SPACING_HIGH));
         panel.add(inputField);
-        panel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        panel.setAlignmentX(Component.CENTER_ALIGNMENT); // Center the whole panel in the form
 
         return panel;
     }
@@ -189,19 +243,17 @@ public class RegisterView extends JPanel implements PropertyChangeListener {
     }
 
     private void addDocumentListener(JTextComponent inputField, Runnable updateAction) {
-        inputField.getDocument().addDocumentListener(new DocumentListener() {
+        inputField.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
             @Override
-            public void insertUpdate(DocumentEvent e) {
+            public void insertUpdate(javax.swing.event.DocumentEvent e) {
                 updateAction.run();
             }
-
             @Override
-            public void removeUpdate(DocumentEvent e) {
+            public void removeUpdate(javax.swing.event.DocumentEvent e) {
                 updateAction.run();
             }
-
             @Override
-            public void changedUpdate(DocumentEvent e) {
+            public void changedUpdate(javax.swing.event.DocumentEvent e) {
                 updateAction.run();
             }
         });
@@ -227,7 +279,6 @@ public class RegisterView extends JPanel implements PropertyChangeListener {
     }
 
     private void handleLoginAction() {
-        System.out.println("navigating to login");
         registerController.switchToLoginView();
     }
 
@@ -239,23 +290,20 @@ public class RegisterView extends JPanel implements PropertyChangeListener {
         }
     }
 
-    /**
-     * Retrieves the name of this view. This name is used for navigation
-     * purposes within the application.
-     * @return the name of this view as a {@link String}.
-     */
     public String getViewName() {
         return VIEW_NAME;
     }
 
-    /**
-     * Sets the controller responsible for handling user interactions
-     * and business logic related to registration.
-     * @param controller the {@link RegisterController} instance to associate
-     *                   with this view. It must not be null.
-     * @throws IllegalArgumentException if {@code controller} is null.
-     */
     public void setRegisterController(RegisterController controller) {
         this.registerController = controller;
+    }
+
+    // Font fallback utility
+    private Font getFontWithFallback(String preferred, int style, int size) {
+        Font font = new Font(preferred, style, size);
+        if (!font.getFamily().equals(preferred)) {
+            font = new Font("SansSerif", style, size);
+        }
+        return font;
     }
 }

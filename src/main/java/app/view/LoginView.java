@@ -7,213 +7,240 @@ import app.interface_adapter.login.LoginViewModel;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
-import javax.swing.text.JTextComponent;
 import java.awt.*;
+import java.awt.event.FocusAdapter;
+import java.awt.event.FocusEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 
-//TODO: Make the labels appear to the left above the text inputs
-
 public class LoginView extends JPanel implements PropertyChangeListener {
     private static final String VIEW_NAME = "login";
-    private JPanel parentPanel;
+
+    // Color palette
+    private static final Color BG_COLOR = new Color(250, 250, 252);                // Very light warm gray
+    private static final Color BUTTON_BG = Color.WHITE;                            // White
+    private static final Color BUTTON_BG_HOVER = new Color(2, 36, 56, 30);         // Vibrant blue, very light
+    private static final Color BUTTON_BORDER = new Color(2, 36, 56);               // Vibrant blue
+    private static final Color BUTTON_TEXT = BUTTON_BORDER;                        // Vibrant blue
+    private static final Color TITLE_COLOR = BUTTON_BORDER;                        // Vibrant blue
+    private static final Color INPUT_BG = Color.WHITE;
+    private static final Color INPUT_BORDER = new Color(220, 225, 235);
+    private static final Color INPUT_BORDER_FOCUS = BUTTON_BORDER;
+    private static final Color INPUT_LABEL = new Color(90, 100, 120);
+
     private final LoginViewModel loginViewModel;
     private final JTextField usernameInputField;
     private final JPasswordField passwordInputField;
-    private final JButton signupButton;
     private final JButton loginButton;
+    private final JButton registerButton;
     private LoginController loginController;
 
-    public LoginView(LoginViewModel loginViewModel) {
-
-        if (loginViewModel == null) {
-            throw new IllegalArgumentException("LoginViewModel cannot be null");
-        }
+    public LoginView(LoginViewModel loginViewModel, LoginController controller) {
         this.loginViewModel = loginViewModel;
         this.loginViewModel.addPropertyChangeListener(this);
+        this.loginController = controller;
 
-        this.setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
-        this.setBackground(Color.decode("#D3D3D3"));
-        this.setBorder(new EmptyBorder(20, 20, 20 ,20));
+        setLayout(new GridBagLayout());
+        setBackground(BG_COLOR);
 
-        JLabel titleLabel = new JLabel("EventHiveUofT", JLabel.CENTER);
-        titleLabel.setFont(new Font("Arial", Font.BOLD, 32));
-        titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-        titleLabel.setForeground(Color.decode("#2E4C34")); // Dark green color
+        GridBagConstraints outerGbc = new GridBagConstraints();
+        outerGbc.gridx = 0;
+        outerGbc.gridy = 0;
+        outerGbc.insets = new Insets(20, 0, 20, 0);
+        outerGbc.anchor = GridBagConstraints.NORTH;
 
-        // Build input fields
-        usernameInputField = createInputField();
-        passwordInputField = createPasswordField();
+        // Title label
+        JLabel titleLabel = new JLabel("EventHiveUofT");
+        titleLabel.setFont(new Font("Inter", Font.BOLD, 28));
+        titleLabel.setForeground(TITLE_COLOR);
+        add(titleLabel, outerGbc);
 
-        signupButton = createButton("Sign up", evt -> handleSignupAction());
-        loginButton = createButton("Log in", evt -> handleLoginAction());
+        outerGbc.gridy = 1;
+        outerGbc.insets = new Insets(0, 0, 0, 0);
 
-        addDocumentListener(usernameInputField, () -> updateState("username"));
-        addDocumentListener(passwordInputField, () -> updateState("password"));
+        JPanel formPanel = new JPanel(new GridBagLayout());
+        formPanel.setOpaque(true);
+        formPanel.setBackground(BG_COLOR);
+        formPanel.setBorder(BorderFactory.createCompoundBorder(
+                new LineBorder(INPUT_BORDER, 1, true),
+                new EmptyBorder(32, 32, 32, 32)
+        ));
+        formPanel.setPreferredSize(new Dimension(400, 260));
+        formPanel.setMaximumSize(new Dimension(400, 260));
+        formPanel.setMinimumSize(new Dimension(400, 260));
+        formPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        this.add(Box.createVerticalStrut(10));
-        this.add(titleLabel);
-        this.add(Box.createVerticalStrut(20));
-        this.add(createLabelTextPanel("username", usernameInputField));
-        this.add(Box.createVerticalStrut(10));
-        this.add(createLabelTextPanel("password", passwordInputField));
-        this.add(Box.createVerticalStrut(30));
-        this.add(createButtonPanel());
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(10, 10, 10, 10);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+
+        // Username
+        usernameInputField = createInputField("Enter your username...");
+        gbc.gridx = 0; gbc.gridy = 0;
+        formPanel.add(createLabel("Username:"), gbc);
+        gbc.gridx = 1;
+        formPanel.add(usernameInputField, gbc);
+
+        // Password
+        passwordInputField = createPasswordField("Enter your password...");
+        gbc.gridx = 0; gbc.gridy = 1;
+        formPanel.add(createLabel("Password:"), gbc);
+        gbc.gridx = 1;
+        formPanel.add(passwordInputField, gbc);
+
+        // Buttons
+        loginButton = createStyledButton("Login", e -> handleLoginAction());
+        registerButton = createStyledButton("Register", e -> handleRegisterAction());
+
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 0));
+        buttonPanel.setOpaque(false);
+        buttonPanel.add(loginButton);
+        buttonPanel.add(registerButton);
+
+        gbc.gridx = 0; gbc.gridy = 2; gbc.gridwidth = 2;
+        gbc.anchor = GridBagConstraints.CENTER;
+        formPanel.add(buttonPanel, gbc);
+
+        add(formPanel, outerGbc);
     }
-    public String getViewName() {
-        return VIEW_NAME; // return string instead of object
-    }
 
+    private JTextField createInputField(String placeholder) {
+        JTextField field = new JTextField(18);
+        field.setFont(new Font("Segoe UI", Font.PLAIN, 15));
+        field.setBorder(BorderFactory.createCompoundBorder(
+                new LineBorder(INPUT_BORDER, 1, true),
+                BorderFactory.createEmptyBorder(8, 12, 8, 12)
+        ));
+        field.setForeground(Color.GRAY);
+        field.setBackground(INPUT_BG);
+        field.setText(placeholder);
+        field.setToolTipText(placeholder);
 
-
-
-    private JTextField createInputField() {
-        JTextField inputField = new JTextField(20);
-        configureInputField(inputField, "username");
-        return inputField;
-    }
-    private JPasswordField createPasswordField() {
-        JPasswordField passwordField = new JPasswordField(20);
-        configureInputField(passwordField, "password");
-        return passwordField;
-    }
-
-    private void configureInputField(JTextComponent inputField, String placeholder) {
-        // appearance settings
-        inputField.setPreferredSize(new Dimension(400, 30));
-        inputField.setMaximumSize(new Dimension(400, 30));
-        inputField.setMinimumSize(new Dimension(400, 30));
-        inputField.setBorder(new LineBorder(Color.LIGHT_GRAY, 1, true));
-        inputField.setFont(new Font("Arial", Font.PLAIN, 14));
-        inputField.setForeground(Color.GRAY);
-        inputField.setText(placeholder);
-
-        // Placeholder behavior
-        inputField.addFocusListener(new java.awt.event.FocusAdapter() {
-            // once user clicks the input box, remove placeholder
-            public void focusGained(java.awt.event.FocusEvent evt) {
-                if (inputField.getText().equals(placeholder)) {
-                    inputField.setText("");
-                    inputField.setForeground(Color.BLACK);
+        field.addFocusListener(new FocusAdapter() {
+            public void focusGained(FocusEvent e) {
+                if (field.getText().equals(placeholder)) {
+                    field.setText("");
+                    field.setForeground(Color.BLACK);
                 }
+                field.setBorder(BorderFactory.createCompoundBorder(
+                        new LineBorder(INPUT_BORDER_FOCUS, 2, true),
+                        BorderFactory.createEmptyBorder(8, 12, 8, 12)
+                ));
             }
-            // re-add placeholder
-            public void focusLost(java.awt.event.FocusEvent evt) {
-                if (inputField.getText().isEmpty()) {
-                    inputField.setForeground(Color.GRAY);
-                    inputField.setText(placeholder);
+            public void focusLost(FocusEvent e) {
+                if (field.getText().isEmpty()) {
+                    field.setForeground(Color.GRAY);
+                    field.setText(placeholder);
                 }
+                field.setBorder(BorderFactory.createCompoundBorder(
+                        new LineBorder(INPUT_BORDER, 1, true),
+                        BorderFactory.createEmptyBorder(8, 12, 8, 12)
+                ));
             }
         });
+        return field;
     }
 
-    private JButton createButton(String text, java.awt.event.ActionListener actionListener) {
-        // button settings (appearance)
-        JButton button = new JButton(text);
-        button.setPreferredSize(new Dimension(150, 40));
-        button.setMaximumSize(new Dimension(150, 40));
-        button.setBackground(Color.decode("#48BF67"));
-        button.setForeground(Color.WHITE);
-        button.setFont(new Font("Arial", Font.BOLD, 16));
-        button.setOpaque(true);
-        button.setContentAreaFilled(true);
-        button.setBorderPainted(true);
-        button.setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY));
+    private JPasswordField createPasswordField(String placeholder) {
+        JPasswordField field = new JPasswordField(18);
+        field.setFont(new Font("Segoe UI", Font.PLAIN, 15));
+        field.setBorder(BorderFactory.createCompoundBorder(
+                new LineBorder(INPUT_BORDER, 1, true),
+                BorderFactory.createEmptyBorder(8, 12, 8, 12)
+        ));
+        field.setForeground(Color.GRAY);
+        field.setBackground(INPUT_BG);
+        field.setEchoChar((char) 0);
+        field.setText(placeholder);
+        field.setToolTipText(placeholder);
+
+        field.addFocusListener(new FocusAdapter() {
+            public void focusGained(FocusEvent e) {
+                if (String.valueOf(field.getPassword()).equals(placeholder)) {
+                    field.setText("");
+                    field.setForeground(Color.BLACK);
+                    field.setEchoChar('•');
+                }
+                field.setBorder(BorderFactory.createCompoundBorder(
+                        new LineBorder(INPUT_BORDER_FOCUS, 2, true),
+                        BorderFactory.createEmptyBorder(8, 12, 8, 12)
+                ));
+            }
+            public void focusLost(FocusEvent e) {
+                if (String.valueOf(field.getPassword()).isEmpty()) {
+                    field.setForeground(Color.GRAY);
+                    field.setEchoChar((char) 0);
+                    field.setText(placeholder);
+                }
+                field.setBorder(BorderFactory.createCompoundBorder(
+                        new LineBorder(INPUT_BORDER, 1, true),
+                        BorderFactory.createEmptyBorder(8, 12, 8, 12)
+                ));
+            }
+        });
+        return field;
+    }
+
+    private JLabel createLabel(String text) {
+        JLabel label = new JLabel(text);
+        label.setFont(new Font("Inter", Font.BOLD, 15));
+        label.setForeground(INPUT_LABEL);
+        return label;
+    }
+
+    private JButton createStyledButton(String text, java.awt.event.ActionListener actionListener) {
+        JButton button = new JButton(text) {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(getModel().isRollover() ? BUTTON_BG_HOVER : BUTTON_BG);
+                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 18, 18);
+                g2.setColor(BUTTON_BORDER);
+                g2.setStroke(new BasicStroke(2));
+                g2.drawRoundRect(1, 1, getWidth() - 2, getHeight() - 2, 18, 18);
+                super.paintComponent(g);
+                g2.dispose();
+            }
+        };
+        button.setOpaque(false);
+        button.setContentAreaFilled(false);
+        button.setBorder(BorderFactory.createEmptyBorder(10, 28, 10, 28));
+        button.setFont(new Font("Inter", Font.BOLD, 15));
+        button.setForeground(BUTTON_TEXT);
+        button.setFocusPainted(false);
+        button.setCursor(new Cursor(Cursor.HAND_CURSOR));
         button.addActionListener(actionListener);
-
-        // Add hover effect (simply make bg darker)
         button.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseEntered(java.awt.event.MouseEvent evt) {
-                button.setBackground(Color.decode("#2E7A46"));
-            }
-
-            public void mouseExited(java.awt.event.MouseEvent evt) {
-                button.setBackground(Color.decode("#48BF67"));
-            }
+            public void mouseEntered(java.awt.event.MouseEvent evt) { button.repaint(); }
+            public void mouseExited(java.awt.event.MouseEvent evt) { button.repaint(); }
         });
-
         return button;
     }
 
-    private JPanel createLabelTextPanel(String labelText, JTextComponent inputField) {
-        JPanel panel = new JPanel();
-        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-        panel.setOpaque(false);
-
-        JLabel label = new JLabel(labelText, JLabel.LEFT);
-        label.setFont(new Font("Arial", Font.PLAIN, 14));
-        panel.add(label);
-        panel.add(Box.createVerticalStrut(5));
-        panel.add(inputField);
-        panel.setAlignmentX(Component.CENTER_ALIGNMENT);
-
-        return panel;
-    }
-
-    private JPanel createButtonPanel() {
-        // make panel for buttons
-        JPanel buttonPanel = new JPanel();
-        buttonPanel.setLayout(new FlowLayout(FlowLayout.CENTER, 20, 0));
-        buttonPanel.setOpaque(false);
-
-        buttonPanel.add(loginButton);
-        buttonPanel.add(signupButton);
-
-        return buttonPanel;
-    }
-    private void addDocumentListener(JTextComponent inputField, Runnable updateAction) {
-        inputField.getDocument().addDocumentListener(new DocumentListener() {
-            @Override
-            public void insertUpdate(DocumentEvent e) {
-                updateAction.run();
-            }
-
-            @Override
-            public void removeUpdate(DocumentEvent e) {
-                updateAction.run();
-            }
-
-            @Override
-            public void changedUpdate(DocumentEvent e) {
-                updateAction.run();
-            }
-        });
-    }
-
-    private void updateState(String fieldType) {
-        LoginState currentState = loginViewModel.getState();
-        if ("username".equals(fieldType)) {
-            currentState.setUsername(usernameInputField.getText());
-        } else if ("password".equals(fieldType)) {
-            currentState.setPassword(new String(passwordInputField.getPassword())); // change here is needed to fix bug where it won't log in properly ifwrong first time
-        }
-        loginViewModel.setState(currentState);
-        System.out.println(loginViewModel.getState().getUsername());
-        System.out.println(loginViewModel.getState().getPassword());
-    }
-
-    // go to signup screen if user wants to register instead
-    private void handleSignupAction() {
-        loginController.switchToRegisterView();
-    }
-
-    // go to the home screen once logged in
     private void handleLoginAction() {
-        LoginState currentState = loginViewModel.getState();
-        loginController.execute(currentState.getUsername(), currentState.getPassword());
+        String username = usernameInputField.getText().trim();
+        String password = String.valueOf(passwordInputField.getPassword()).trim();
+        loginController.execute(username, password);
+    }
+
+    private void handleRegisterAction() {
+        loginController.switchToRegisterView();
     }
 
     @Override
     public void propertyChange(PropertyChangeEvent evt) {
         LoginState state = (LoginState) evt.getNewValue();
         if (state.getUsernameError() != null) {
-            JOptionPane.showMessageDialog(this, state.getUsernameError());
+            JOptionPane.showMessageDialog(this, state.getUsernameError(), "Login Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 
-    public void setLoginController(LoginController loginController){
-        this.loginController = loginController;
+    public String getViewName() {
+        return VIEW_NAME;
+    }
+
+    public void setLoginController(LoginController controller) {
+        this.loginController = controller;
     }
 }

@@ -1,6 +1,5 @@
-package app.use_case.ViewCreated;
+package app.use_case.view_created_events;
 
-import app.use_case.view_created_events.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 

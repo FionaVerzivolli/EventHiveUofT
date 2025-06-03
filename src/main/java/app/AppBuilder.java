@@ -216,9 +216,11 @@ public class AppBuilder {
 
     public AppBuilder addLoginView() {
         loginViewModel = new LoginViewModel();
-        loginView = new LoginView(loginViewModel);
+        LoginOutputBoundary loginOutputBoundary = new LoginPresenter(viewManagerModel, loginViewModel, registerViewModel, homeViewModel);
+        LoginInputBoundary loginInteractor = new LoginInteractor(userDAO, loginOutputBoundary);
+        LoginController loginController = new LoginController(loginInteractor);
+        loginView = new LoginView(loginViewModel, loginController);
         cardPanel.add(loginView, loginView.getViewName());
-
         return this;
     }
 
