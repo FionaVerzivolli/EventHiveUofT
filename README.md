@@ -1,290 +1,130 @@
 # **EventHiveUofT** 🎉
 
-## **Authors and Contributors** 👥
+A centralized event-management system that connects the University of Toronto community through an interactive map, RSVP tracking, real-time notifications, and inclusive accessibility features.
 
-- **Main Authors**:
-    - **Naoroj Farhan**     [@pirate2580](https://github.com/pirate2580)
-    - **Fiona Verzivolli**  [@FionaVerzivolli](https://github.com/FionaVerzivolli)
-    - **Andrew Sasmito**    [@AndrewSasmito](https://github.com/AndrewSasmito)
-    - **Edric N.H.G. Ho**          [@Edric.main(cryingFace)](https://github.com/Edric-Ho)
-    - Presentation Slides: [Click For Slides!](https://docs.google.com/presentation/d/1HSD1_LwToquN6OsTPC3G4YrxJb72FrwKeaKO-189-bI/edit?usp=sharing)
+---
 
-- **Special Thanks**: Collaborators at the University of Toronto, including project mentors, peer reviewers, and support from the teaching team.
+## 👀 Quick Look – Interactive Campus Map
+<img src="https://github.com/user-attachments/assets/f83fb559-8f97-4689-8d28-aeeca08c627c" width="600" alt="Interactive Map"/>
 
-The main contributors will actively update the application to enhance its features, fix bugs, and ensure the user experience is as smooth as possible. Additional contributions are always welcome!!!
+<br>
+<br>
 
-## **Summary** 📝
+> **Hover or click pins** to explore events across Robarts, Sidney Smith, and more. Filter by tag, date, or building to discover exactly what you need—fast.
 
-**EventHiveUofT** is a centralized event management system specifically tailored for students and staff at the [**University of Toronto**](https://www.utoronto.ca). It is designed to streamline the process of organizing, discovering, and participating in campus events by offering an integrated platform that is accessible, easy-to-use, and informative.
+<br>
 
-This project solves the challenge of fragmented event information by providing a **comprehensive solution** that includes an **interactive campus map**, **event creation and management**, **real-time RSVP**, **email notifications**, and **user accessibility features**. Accessibility features are a primary concern, making sure that everyone can fully engage with the university's vibrant campus life.
+<img src="https://github.com/user-attachments/assets/cf4fb3ce-2b98-4f4d-b79b-91f571ac4f1a" width="500" alt="Map Filters"/>
 
 
-**EventHiveUofT** aims to build a **connected campus community** where students and staff can easily find opportunities to network, learn, and socialize through organized events. 🚀
+---
 
-## **Table of Contents** 📑
+## **Authors & Contributors** 👥
 
-1. [Features](#Features)
-2. [Installation](#installation)
-3. [Usage](#usage)
-4. [License](#license)
-5. [Feedback](#feedback)
-6. [Contribution](#contribution)
-7. [Maintenance](#maintenance)
-8. [FAQs and Troubleshooting](#faqs-and-troubleshooting)
-9. [Future Features](#future-features)
+### Core Team
+- **Fiona Verzivolli**  [@FionaVerzivolli](https://github.com/FionaVerzivolli)  
+- **Andrew Sasmito**  [@AndrewSasmito](https://github.com/AndrewSasmito)
+- **Naoroj Farhan**  [@pirate2580](https://github.com/pirate2580)  
+- **Edric N.H.G. Ho**  [@Edric.main(cryingFace)](https://github.com/Edric-Ho)  
+- **Presentation Slides:** [Click For Slides!](https://docs.google.com/presentation/d/1HSD1_LwToquN6OsTPC3G4YrxJb72FrwKeaKO-189-bI/edit?usp=sharing)
 
-## **Features** 🚀
+### Special Thanks
+Collaborators at the University of Toronto, including project mentors, peer reviewers, and the teaching team.
 
-### **1. Event Creation and Management** ✏️
+---
 
-Users can **create**, **modify**, and **delete** events on campus using an intuitive form. The following details can be added to an event:
+## **Summary** 📝 <a name="summary"></a>
 
-- **Event Name**
-- **Event Organizer**
-- **Date and Time**
-- **Location** (by latitude(43 to 44) and longitude(-78 to -79))
-- **Event Description**
-- **Event Type(Tag)**
+**EventHiveUofT** solves the problem of fragmented campus-event information by offering a single platform where students and staff can create, discover, and manage events with ease.
 
-#### **Technical Implementation**
+**Highlights**
 
-- The `CreateEventInteractor` and `ModifyEventInteractor` classes are the core drivers of the event management feature. These classes handle **data validation**, **data storage**, and **event modification**.
-- Events are stored using `FirebaseService` for reliability, ensuring data is always available in real-time.
+- **Event Creation & Management** with real-time storage via Firebase  
+- **Interactive Campus Map** (see hero above) powered by JXMapViewer  
+- **RSVP & Email Notifications** so organizers and attendees stay in sync  
+- **Accessibility** features such as color-blind-friendly markers and planned screen-reader support  
 
-#### **Screenshots**
+Our goal is to build a connected campus community where networking, learning, and socializing are effortless. 🚀
 
-- **Event Creation Page**:
+---
 
-Create event:
+## **Features** 🚀 <a name="features"></a>
 
-<img width="400" alt="Create_event_view" src="https://github.com/user-attachments/assets/2099489d-1016-4e48-9375-550590d2ffa0">
+### 1. Interactive Campus Map 🗺️
+Visualize events across U of T with clickable pins and building overlays.
+
+**Technical Highlights**
+- Built on **JXMapViewer** for smooth pan/zoom  
+- `ViewEventInteractor` & `ViewRSVPInteractor` synchronize map state with Firebase  
+
+*(Screenshots shown in the hero section above.)*
+
+---
+
+### 2. Event Creation & Management ✏️
+Users can **create, modify, and delete events** with fields for name, organizer, date/time, location (lat 43–44 / lon -78–-79), description, and tags.
+
+**Technical Highlights**
+- `CreateEventInteractor` & `ModifyEventInteractor` handle validation and Firebase persistence  
+- Data stored via `FirebaseService` for low-latency updates
+
+Create Event:
+
+<img src="https://github.com/user-attachments/assets/1d28d343-db1d-4431-87a6-875d55cf3d7e" width="350" alt="Create Event"/>
+
+
 
 Modify Event:
 
-<img width="400" alt="modify_event_view" src="https://github.com/user-attachments/assets/15461139-4bf2-4a78-8394-ae902d94e14a">
+<img src="https://github.com/user-attachments/assets/67d7beec-8611-4723-8b49-c27c82d02e4b" width="350" alt="Modify Event"/>
 
-### **2. Interactive Campus Map** 🗺️
 
-The application features an interactive map of the **University of Toronto campus** where users can visually explore:
+---
 
-- **Event Locations**
-- **Building Information** (e.g., Robarts Library, Sidney Smith)
+### 3. RSVP & Notifications 📅
+Attendees RSVP with one click; organizers track numbers and send updates.
 
-#### **Technical Implementation**
+**Technical Highlights**
+- `RSVPEventInteractor` manages attendance lists  
+- `NotifyUserInteractor` + `EmailSender` trigger confirmation and reminder emails  
 
-- The map uses the `JXMapViewer` library to provide smooth navigation across different campus buildings.
-- Events are marked with **pins** that users can **hover over** or **click** to get more information.
-- The `ViewEventInteractor` and `ViewRSVPInteractor` manage all user interactions with the map, ensuring the events are displayed accurately.
+RSVP Here:
 
-#### **Screenshots**
+<img src="https://github.com/user-attachments/assets/5dd10100-4520-4950-a99a-c26d4e8f7da6" width="450" alt="RSVP Flow"/>
 
-- **Interactive Map**:
-<img width="600" alt="markers_on_maps" src="https://github.com/user-attachments/assets/a1a2b609-7ab8-4e22-bbe9-a52d7067bc98">
 
+View RSVPed events here (in this example, there are none):
 
-### **3. RSVP Functionality** 📅
+<img src="https://github.com/user-attachments/assets/97fd2417-6289-4d66-a80e-9abb36681186" width="450" alt="RSVP List"/>
 
-Users can **RSVP** to events, which allows them to keep track of their plans. This also enables organizers to see attendees and send out **notifications** to those registered.
+---
 
-- Users can also **view the list of events** they have RSVP’d to, making it easy to manage their schedule.
+### 4. User Registration & Login 🔐
+Secure Firebase-backed accounts with email/password, duplicate checks, and strength validation.
 
-#### **Technical Implementation**
+Register Screen:
 
-- The `RSVPEventInteractor` processes the RSVP requests and ensures that users are properly added to the list of attendees.
-- The `RSVPEventUserDataAccessInterface` provides methods for managing RSVP details within Firebase.
+<img src="https://github.com/user-attachments/assets/471bdcc4-0b19-48d4-af08-0c59ef2a26d7" width="550" alt="Register"/>
 
-#### **Screenshots**
+Login Screen:
 
-- **RSVP Screen**:
-- 
-  You can RSVP here:
-  
- <img width="600" alt="EventDescription" src="https://github.com/user-attachments/assets/88ca823f-7055-4ff0-b983-30779d6358b4">
- 
- <img width="600" alt="EventDescription" src="https://github.com/user-attachments/assets/ff68571c-2adc-47aa-89c5-896c5011e54f">
+<img src="https://github.com/user-attachments/assets/da53af0b-99f7-4651-9e0b-0a6075a49b9f" width="550" alt="Login"/>
 
- And then your RSVPed events are shown:
- 
-  <img width="400" alt="EventDescription" src="https://github.com/user-attachments/assets/c88689bb-8be7-4855-b6da-657785852218">
+---
 
+### 5. Email Notifications 📧
+- **Instant confirmations** – “You’re in!” email sent immediately after RSVP (`NotifyUserInteractor` → `EmailSender`).
+- **Update / cancel blasts** – edits or cancellations trigger a single email to all current RSVPs.
+- **Template editor** – organizers tweak subject/body (Markdown supported) with no redeploy.
+- **Delivery logs** – each outbound email writes a status doc in Firebase for audit & retry.
 
+### 6. Accessibility ♿
+- **Zoomable UI & resizable text** for low-vision users.
+- **Alt-text on all images** for screen readers.
+- **Live error feedback** via ARIA `role="alert"` regions.
 
-### **4. User Registration and Login System** 🔐
+*Roadmap:* screen-reader labels on pins, high-contrast theme toggle, full WCAG 2.1 AA audit.
 
-To enhance security and personalization, **users must register** with their email and a password to access the platform. This ensures:
-
-- **Data privacy** and personalized experiences.
-- **User accounts** that can be managed independently.
-
-#### **Technical Implementation**
-
-- The `RegisterInteractor` and `LoginInteractor` classes handle the registration and login processes, using the Firebase Authentication SDK.
-- The **registration form** is protected with validation checks for **duplicate usernames**, **proper email formatting**, and **password strength**.
-
-#### **Screenshots**
-
-- **Registration Page**:
-
-<img width="801" alt="Registration_view" src="https://github.com/user-attachments/assets/ccbeb0c9-2a92-4b44-9788-b535829196b3">
-
-
-### **5. Email Notifications** 📧
-
-Users and event organizers are kept informed through **email notifications**. These are triggered for events like:
-
-- **RSVP Confirmations**
-- **Event Reminders**
-
-#### **Technical Implementation**
-
-- The `NotifyUserInteractor` collaborates with the `EmailSender` and `FirebaseService` classes to manage email notifications.
-- Emails are **customizable** by organizers and ensure all users remain informed about their event commitments.
-
-#### **Screenshots**
-
-- **Notify RSVPed User**:
-
-<img width="400" alt="Notification" src="https://github.com/user-attachments/assets/6f5e2b6c-45de-4b6e-840e-7b34ffd71ae3">
-
-
-### **6. Accessibility Features** ♿
-
-In accordance with **Universal Design Principles**, the app includes:
-
-- **Adjustable Zoom Levels** for users with **visual impairments**.
-- **Color-blind Friendly Markers** on the map to ensure inclusivity.
-- Planned future enhancements include a **screen reader** for visually impaired users.
-
-#### **Technical Implementation**
-
-- The `DisplayEventPresenter` ensures that all displayed content is **clear**, **legible**, and **easy to navigate**.
-
-### **7. View Created Events** 👀
-
-Event organizers can **view all the events** they have created for easier management and modifications.
-
-- The feature provides a **summary view** of the events created, including **date**, **time**, and **RSVP details**.
-
-#### **Technical Implementation**
-
-- The `ViewCreatedInteractor` uses the `ViewCreatedDataAccessInterface` to retrieve and present all created events.
-- The **presenter** formats the data for easy viewing within the user interface.
-
-#### **Screenshots**
-
-- **Create Event View**:
-
-<img width="400" alt="Create_event_view" src="https://github.com/user-attachments/assets/2099489d-1016-4e48-9375-550590d2ffa0">
-
-### **8. Modify User Details** ✏️
-
-Users can easily modify their **account details**, such as changing their **email** or **password**.
-
-#### **Technical Implementation**
-
-- The `ModifyUserInteractor` manages the user details update process.
-- The `ModifyUserDataAccessInterface` ensures that changes are securely updated in Firebase.
-
-## **Installation** 🛠️
-
-To get started with **EventHiveUofT**, follow these detailed steps:
-
-1. **Clone the Repository** 📂:
-
-   ```sh
-   git clone https://github.com/FionaVerzivolli/EventHiveUofT.git
-   cd EventHiveUofT
-   ```
-
-2. **Java Installation** ☕:
-
-    - Ensure **Java 11** is installed. It is recommended to use [AdoptOpenJDK](https://adoptopenjdk.net/).
-    - Verify installation:
-      ```sh
-      java -version
-      ```
-
-3. **Maven Installation** 📦:
-
-    - Install **Maven** (minimum version 3.6.0).
-    - Follow the [Maven Installation Guide](https://maven.apache.org/install.html).
-    - Verify Maven installation:
-      ```sh
-      mvn -v
-      ```
-
-4. **Firebase Setup** 🔧:
-
-    - Set up Firebase by obtaining the `firebase-service-account.json` from the Firebase console.
-    - **Steps to Obtain JSON**:
-        1. Visit the **Firebase Console**.
-        2. Navigate to **Settings > Service Accounts**.
-        3. Click **Generate New Private Key** and save it in the project under `/private/`.
-
-   ![ServiceAccount.Json](https://s3.amazonaws.com/cdn.freshdesk.com/data/helpdesk/attachments/production/72045913053/original/wtqtJOcKiKJ2C89JLmjFYvukuQOyHfGVwg.png?1681913930)
-
-5. **Environment Variables** 🌐:
-
-    - Add an environment variable for the Firebase service account file path:
-      ```sh
-      export GOOGLE_APPLICATION_CREDENTIALS="/path/to/firebase-service-account.json"
-      ```
-
-6. **Build and Run the Project** 🚀:
-
-    - **Build** the project using Maven:
-      ```sh
-      mvn clean install
-      ```
-    - **Run** the project:
-      ```sh
-      mvn spring-boot:run
-      ```
-
-7. **Dependencies**:
-
-    - The dependencies include:
-        - **Spring Boot Starter** for the backend framework.
-        - **Firebase Admin SDK** for user management and notifications.
-        - **JXMapViewer** for the interactive campus map.
-        - All dependencies are listed in `pom.xml` with required versions.
-
-**Common Issues** ⚠️:
-
-- **Firebase Connection Issues**:
-    - Double-check the path to `firebase-service-account.json`.
-    - Ensure the credentials have sufficient permissions.
-- **Maven Build Errors**:
-    - Clean the cache and retry:
-      ```sh
-      mvn clean install
-      ```
-- **Port Conflict**:
-    - Make sure the default port (**8080**) is free or modify it in `application.properties`.
-
-## **Usage** 💻
-
-### **1. Registration and Login** 🔐
-
-- **Register** with your email and password.
-- **Login** to access features.
-
-### **2. Create and Manage Events** ✏️
-
-- Navigate to the **Event Creation Page**.
-- Fill out the **event form** and click **Submit**.
-- To **edit an event**, go to **Your Events** and click **Edit**.
-
-### **3. Interact with the Campus Map** 🗺️
-
-- **Explore Events** across the campus.
-- **Hover** or **click** on markers to see details.
-
-### **4. RSVP and Notification** 📅
-
-- Click **RSVP** to confirm attendance.
-- **Receive notifications** for updates and reminders.
 
 ## **License** 📜
 
@@ -457,9 +297,6 @@ Contributions are welcome and encouraged! Here’s how you can get involved:
 - **Permission Checks**: Confirm that the credentials have the required permissions within the Firebase project to access **Firestore**, **Authentication**, and other used services.
 - **Network Issues**: If you're behind a firewall or VPN, check that the required ports for Firebase are not blocked.
 
-<img width="250" alt="Screenshot 2024-12-03 at 22 52 37" src="https://github.com/user-attachments/assets/5c3f6164-2321-45ac-9015-32414d00f60f">
-
-
 ---
 
 **Issue: Maven Build Errors**
@@ -482,8 +319,6 @@ Contributions are welcome and encouraged! Here’s how you can get involved:
 - **Dependencies Set Up**: Verify that the project dependencies have been setted up and Maven has built the porject successfully.
 - **Map Data Not Loaded**: Check the console logs for errors related to loading the **JXMapViewer** data. Make sure the data endpoints are properly connected.
 
-<img width="600" alt="markers_on_maps" src="https://github.com/user-attachments/assets/a1a2b609-7ab8-4e22-bbe9-a52d7067bc98">
-
 ---
 
 **Issue: Unable to RSVP to Events**
@@ -493,9 +328,6 @@ Contributions are welcome and encouraged! Here’s how you can get involved:
 - **Login Check**: Make sure you are logged in before attempting to RSVP to an event.
 - **Event Capacity**: Verify that the event isn’t at full capacity. The RSVP function will not allow users to join if the event has reached its limit.
 - **Network Stability**: Ensure your network connection is stable, as RSVP actions require an active connection to Firebase.
-
-<img width="400" alt="RSVP_success_view" src="https://github.com/user-attachments/assets/3fb3c46c-f68f-4518-a877-67bd99c357d0">
-
 
 ## **Future Features** 🚀
 
